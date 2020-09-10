@@ -51,7 +51,7 @@ export default function Abstract() {
 
 
   return (
-    <Grid item xs={12} md={8} justify="center" style={{ maxWidth: '100%', marginTop: 10 }}>
+    <Grid item xs={12} md={8} justify="center" style={{ maxWidth: '100%', margin: 20 }}>
       <Typography variant="h6" gutterBottom>
         Abstract
       </Typography>
