@@ -10,6 +10,10 @@ import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
+import Snackbar from "@material-ui/core/Snackbar";
+import SnackbarContent from "@material-ui/core/SnackbarContent";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
 // Generate Order Data
@@ -59,6 +63,7 @@ class Donate extends React.Component {
     showDonors: false,
     showDonorsText: "Show Donors",
     phone: false,
+    open: false,
   };
 
   handleSubmit = (e) => {
@@ -81,9 +86,15 @@ class Donate extends React.Component {
         e.target.amount.value
       )
     );
-    this.setState({ ...this.state, rows: newrows });
-    console.log(this.state.rows);
+    this.setState({ ...this.state, rows: newrows, open: true });
     e.target.reset();
+  };
+
+  handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    this.setState({ ...this.state, open: false });
   };
 
   renderTable() {
@@ -132,7 +143,30 @@ class Donate extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
-        {/*<Title>Recent Orders</Title>*/}
+        <Snackbar
+          open={this.state.open}
+          autoHideDuration={6000}
+          onClose={this.handleClose}
+        >
+          <SnackbarContent
+            style={{
+              backgroundColor: "green",
+            }}
+            action={
+              <React.Fragment>
+                <IconButton
+                  size="small"
+                  aria-label="close"
+                  color="inherit"
+                  onClick={this.handleClose}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </React.Fragment>
+            }
+            message={<span id="client-snackbar">Donation Successful!</span>}
+          />
+        </Snackbar>
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
@@ -172,10 +206,9 @@ class Donate extends React.Component {
                 inputProps={{ maxLength: 10, minLength: 10 }}
                 validateOnBlur
                 onChange={(e) => {
-                  if(e.target.value.length != 10)
+                  if (e.target.value.length !== 10)
                     this.setState({ ...this.state, phone: true });
-                  else
-                    this.setState({ ...this.state, phone: false });
+                  else this.setState({ ...this.state, phone: false });
                 }}
                 error={this.state.phone}
               />

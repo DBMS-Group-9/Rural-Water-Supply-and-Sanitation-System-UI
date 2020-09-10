@@ -5,7 +5,6 @@ import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import Markdown from "./../components/Markdown";
 import AbstractPost from "./../static/Abstract.md";
-import ReactMarkdown from 'markdown-to-jsx';
 
 const useStyles = makeStyles((theme) => ({
   markdown: {
