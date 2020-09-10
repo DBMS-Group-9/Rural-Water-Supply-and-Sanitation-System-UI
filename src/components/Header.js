@@ -62,7 +62,7 @@ export default function Header() {
             <Link
               variant="button"
               color="textPrimary"
-              href="/don"
+              href="/donate"
               className={classes.link}
             >
               Donate
