@@ -17,8 +17,8 @@ import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
 // Generate Order Data
-function createData(id, tid, date, name, accNo, contact, amount) {
-  return { id, tid, date, name, accNo, contact, amount };
+function createData(id, JobCode, Designation, Shift) {
+  return { id, JobCode, Designation, Shift };
 }
 
 const styles = (theme) => ({
@@ -44,51 +44,29 @@ const styles = (theme) => ({
   },
 });
 
-class Donate extends React.Component {
+class Jobs extends React.Component {
   state = {
     rows: [
-      createData(0, "TX1", "08-09-2020", "Elvis Presley", "00000020312420312", "9876543210", 1000),
-      createData(1, "TX2", "07-09-2020", "Paul McCartney", "00000024185629743", "9876543211", 200),
-      createData(2, "TX3", "09-09-2020", "Tom Scholz", "00000028473628512", "9876543212", 500),
-      createData(3, "TX4", "10-09-2020", "Michael Jackson", "00000025649286576", "9876543213", 2000),
-      createData(
-        4,
-        "TX5",
-        "05-09-2020",
-        "Bruce Springsteen",
-        "00000025431826987",
-        "9876543214",
-        750
-      ),
+      createData(0, "Job01", "08-09-2020", "Elvis Presley"),
+      createData(1, "Job02", "07-09-2020", "Paul McCartney"),
+      createData(2, "Job03", "09-09-2020", "Tom Scholz"),
+      createData(3, "Job04", "10-09-2020", "Michael Jackson"),
+      createData(4, "Job05", "05-09-2020", "Bruce Springsteen"),
     ],
     showDonors: false,
     showDonorsText: "Show Donors",
-    phoneErrorText: "",
-    phone: false,
     open: false,
   };
 
   handleSubmit = (e) => {
     e.preventDefault();
-    if(this.state.phone)
-      return;
-    var d = new Date();
-    var date =
-      +("0" + d.getDate()).slice(-2) +
-      "-" +
-      ("0" + (d.getMonth() + 1)).slice(-2) +
-      "-" +
-      d.getFullYear();
     var newrows = this.state.rows;
     newrows.push(
       createData(
         this.state.rows.length,
-        e.target.tid.value,
-        date,
-        e.target.name.value,
-        e.target.accNo.value,
-        e.target.contact.value,
-        e.target.amount.value
+        e.target.JobCode.value,
+        e.target.Designation.value,
+        e.target.Shift.value
       )
     );
     this.setState({ ...this.state, rows: newrows, open: true });
@@ -116,23 +94,17 @@ class Donate extends React.Component {
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Transaction ID</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Account Number</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell align="right">Amount</TableCell>
+                      <TableCell>Job ID</TableCell>
+                      <TableCell>Designation</TableCell>
+                      <TableCell>Shift</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
                       <TableRow key={row.id}>
-                        <TableCell>{row.tid}</TableCell>
-                        <TableCell>{row.date}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>{row.accNo}</TableCell>
-                        <TableCell>{row.contact}</TableCell>
-                        <TableCell align="right">{row.amount}</TableCell>
+                        <TableCell>{row.JobCode}</TableCell>
+                        <TableCell>{row.Designation}</TableCell>
+                        <TableCell>{row.Shift}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -185,9 +157,9 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="tid"
-                label="Transaction ID"
-                name="tid"
+                id="JobCode"
+                label="Job Code"
+                name="JobCode"
                 type="text"
                 autoFocus
               />
@@ -196,49 +168,20 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                name="name"
-                label="Name"
+                name="Designation"
+                label="Designation"
+                type="Designation"
+                id="Designation"
+              />
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="Shift"
+                label="Shift"
                 type="text"
-                id="name"
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="accNo"
-                label="Account Number"
-                type="text"
-                id="accNo"
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="contact"
-                label="Contact"
-                type="number"
-                id="contact"
-                inputProps={{ maxLength: 10, minLength: 10 }}
-                helperText={this.state.phoneErrorText}
-                validateOnBlur
-                onChange={(e) => {
-                  if (e.target.value.length !== 10)
-                    this.setState({ ...this.state, phone: true, phoneErrorText: "Phone Number must be of 10 digits." });
-                  else this.setState({ ...this.state, phone: false, phoneErrorText: "" });
-                }}
-                error={this.state.phone}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="amount"
-                label="Amount"
-                type="number"
-                id="amount"
+                id="Shift"
               />
               <Button
                 type="submit"
@@ -283,4 +226,4 @@ class Donate extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Donate);
+export default withStyles(styles, { withTheme: true })(Jobs);

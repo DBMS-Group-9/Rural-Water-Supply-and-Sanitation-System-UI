@@ -61,6 +61,14 @@ export default function Header() {
             <Link
               variant="button"
               color="textPrimary"
+              href="/jobs"
+              className={classes.link}
+            >
+              Jobs
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
               href="/donate"
               className={classes.link}
             >
