@@ -48,6 +48,14 @@ function initializeDB() {
   return newrows;
 }
 
+function getFromSessionStorage(key) {
+  let obj = JSON.parse(sessionStorage.getItem(key));
+  if(!obj) {
+    obj = [];
+  }
+  return obj;
+}
+
 const styles = (theme) => ({
   seeMore: {
     marginTop: theme.spacing(3),
@@ -78,7 +86,7 @@ class SanitationSystems extends React.Component {
     showSanitationSystemsText: "Show Sanitation Systems",
     locationSelect: '',
     statusSelect: '',
-    availableLocation: JSON.parse(sessionStorage.getItem('Location')),
+    availableLocation: getFromSessionStorage('Location'),
     open: false,
   };
 

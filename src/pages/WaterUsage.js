@@ -48,6 +48,14 @@ function initializeDB() {
   return newrows;
 }
 
+function getFromSessionStorage(key) {
+  let obj = JSON.parse(sessionStorage.getItem(key));
+  if(!obj) {
+    obj = [];
+  }
+  return obj;
+}
+
 const styles = (theme) => ({
   seeMore: {
     marginTop: theme.spacing(3),
@@ -79,7 +87,7 @@ class WaterUsage extends React.Component {
     wsidSelect: '',
     monthSelect: '',
     yearSelect: '',
-    availableWSID: JSON.parse(sessionStorage.getItem('WaterSources')),
+    availableWSID: getFromSessionStorage('WaterSources'),
     open: false,
   };
 

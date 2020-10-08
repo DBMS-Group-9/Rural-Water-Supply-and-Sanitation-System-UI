@@ -48,6 +48,14 @@ function initializeDB() {
   return newrows;
 }
 
+function getFromSessionStorage(key) {
+  let obj = JSON.parse(sessionStorage.getItem(key));
+  if(!obj) {
+    obj = [];
+  }
+  return obj;
+}
+
 const styles = (theme) => ({
   seeMore: {
     marginTop: theme.spacing(3),
@@ -78,10 +86,8 @@ class Employee extends React.Component {
     showEmployeeText: "Show Employee",
     jobSelect: '',
     locationSelect: '',
-    availableJobs: JSON.parse(sessionStorage.getItem('Jobs')),
-    availableLocation: JSON.parse(sessionStorage.getItem('Location')),
-    open: false,
-    submiterror: false
+    availableJobs: getFromSessionStorage('Jobs'),
+    availableLocation: getFromSessionStorage('Location')
   };
 
   handleSubmit = (e) => {

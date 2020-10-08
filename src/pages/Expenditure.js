@@ -48,6 +48,14 @@ function initializeDB() {
   return newrows;
 }
 
+function getFromSessionStorage(key) {
+  let obj = JSON.parse(sessionStorage.getItem(key));
+  if(!obj) {
+    obj = [];
+  }
+  return obj;
+}
+
 const styles = (theme) => ({
   seeMore: {
     marginTop: theme.spacing(3),
@@ -79,9 +87,9 @@ class Expenditure extends React.Component {
     empidSelect: '',
     wsidSelect: '',
     ssidSelect: '',
-    availableEmpID: JSON.parse(sessionStorage.getItem('Employee')),
-    availableWSID: JSON.parse(sessionStorage.getItem('WaterSources')),
-    availableSSID: JSON.parse(sessionStorage.getItem('SanitationSystems')),
+    availableEmpID: getFromSessionStorage('Employee'),
+    availableWSID: getFromSessionStorage('WaterSources'),
+    availableSSID: getFromSessionStorage('SanitationSystems'),
     open: false,
   };
 
