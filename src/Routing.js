@@ -6,11 +6,23 @@ import Home from "./pages/Homepage";
 import Abstract from "./pages/Abstract";
 import Donate from "./pages/Donate";
 import Jobs from "./pages/Jobs";
+import Location from "./pages/Location";
+import Employee from "./pages/Employee";
+import WaterSources from "./pages/WaterSources";
+import WaterUsage from "./pages/WaterUsage";
+import SanitationSystems from "./pages/SanitationSystems";
+import Expenditure from "./pages/Expenditure";
 
 export const HomeRoute = "/";
 export const AbstractRoute = "/abstract/";
 export const DonateRoute = "/donate/";
 export const JobsRoute = "/jobs/";
+export const LocationRoute = "/location/";
+export const EmployeeRoute = "/employee/";
+export const WaterSourcesRoute = "/watersources/";
+export const WaterUsageRoute = "/waterusage/";
+export const SanitationSystemsRoute = "/sanitationsystems/";
+export const ExpenditureRoute = "/expenditure/";
 
 class Routing extends React.Component {
   render() {
@@ -20,6 +32,12 @@ class Routing extends React.Component {
         <Route path={AbstractRoute} component={Abstract} />
         <Route path={DonateRoute} component={Donate} />
         <Route path={JobsRoute} component={Jobs} />
+        <Route path={LocationRoute} component={Location} />
+        <Route path={EmployeeRoute} component={Employee} />
+        <Route path={WaterSourcesRoute} component={WaterSources} />
+        <Route path={WaterUsageRoute} component={WaterUsage} />
+        <Route path={SanitationSystemsRoute} component={SanitationSystems} />
+        <Route path={ExpenditureRoute} component={Expenditure} />
       </React.Fragment>
     );
   }

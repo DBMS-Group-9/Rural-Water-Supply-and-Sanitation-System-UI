@@ -61,10 +61,58 @@ export default function Header() {
             <Link
               variant="button"
               color="textPrimary"
+              href="/location"
+              className={classes.link}
+            >
+              Location
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
               href="/jobs"
               className={classes.link}
             >
               Jobs
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/employee"
+              className={classes.link}
+            >
+              Employee
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/watersources"
+              className={classes.link}
+            >
+              Water Sources
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/waterusage"
+              className={classes.link}
+            >
+              Water Usage
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/sanitationsystems"
+              className={classes.link}
+            >
+              Sanitation Systems
+            </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/expenditure"
+              className={classes.link}
+            >
+              Expenditure
             </Link>
             <Link
               variant="button"

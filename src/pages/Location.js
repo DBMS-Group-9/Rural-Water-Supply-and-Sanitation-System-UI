@@ -17,8 +17,31 @@ import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
 // Generate Order Data
-function createData(id, tid, date, accNo, contact, amount) {
-  return { id, tid, date, accNo, contact, amount };
+function createData(id, Pincode, Panchayat, District) {
+  return { id, Pincode, Panchayat, District };
+}
+
+function initializeDB() {
+  let newrows = sessionStorage.getItem('Location');
+  if(newrows) {
+    newrows = JSON.parse(newrows);
+  }
+  else {
+    newrows = [
+      createData(0, 641112,'Ettimadai','Coimbatore'),
+      createData(1, 641105,'Madukarai','Coimbatore'),
+      createData(2, 641041,'PN Pudur','Coimbatore'),
+      createData(3, 641062,'RG Pudur','Coimbatore'),
+      createData(4, 635602,'Adiyur','Vellore'),
+      createData(5, 641605,'Ugayanur','Tiruppur'),
+      createData(6, 609503,'Koothanur','Tiruppur'),
+      createData(7, 621702,'Ambil','Tiruchirappalli'),
+      createData(8, 626126,'Kunnur','Theni'),
+      createData(9, 641655,'Alathur','Coimbatore')
+    ]
+    sessionStorage.setItem('Location', JSON.stringify(newrows));
+  }
+  return newrows;
 }
 
 const styles = (theme) => ({
@@ -44,50 +67,27 @@ const styles = (theme) => ({
   },
 });
 
-class Donate extends React.Component {
+class Location extends React.Component {
   state = {
-    rows: [
-      createData(0, "T00001", "2020-01-22", "123456789101112", "9999999999", 60000000),
-      createData(1, "T00002", "2020-04-11", "123456769009224", "9676313275", 1000),
-      createData(2, "T00003", "2020-01-02", "123565678432156", "8985546789", 1000),
-      createData(3, "T00004", "2020-05-07", "567895432167889", "9678654329", 1000),
-      createData(4, "T00005", "2020-07-03", "123564567897656", "7702184949", 1000),
-      createData(5, "T00006", "2020-01-10", "678954325689567", "9490384823", 1000),
-      createData(6, "T00007", "2020-06-06", "789456345678956", "9989654329", 1000),
-      createData(7, "T00008", "2020-05-15", "657894325678976", "9989442189", 1000),
-      createData(8, "T00009", "2020-02-21", "456789543267798", "6302856789", 1000),
-      createData(9, "T00010", "2020-03-20", "345678934523678", "7302184965", 1000)
-    ],
-    showDonors: false,
-    showDonorsText: "Show Donors",
-    phoneErrorText: "",
-    phone: false,
+    rows: initializeDB(),
+    showLocation: false,
+    showLocationText: "Show Location",
     open: false,
   };
 
   handleSubmit = (e) => {
     e.preventDefault();
-    if(this.state.phone)
-      return;
-    var d = new Date();
-    var date =
-      +("0" + d.getDate()).slice(-2) +
-      "-" +
-      ("0" + (d.getMonth() + 1)).slice(-2) +
-      "-" +
-      d.getFullYear();
     var newrows = this.state.rows;
     newrows.push(
       createData(
         this.state.rows.length,
-        e.target.tid.value,
-        date,
-        e.target.accNo.value,
-        e.target.contact.value,
-        e.target.amount.value
+        e.target.Pincode.value,
+        e.target.Panchayat.value,
+        e.target.District.value
       )
     );
     this.setState({ ...this.state, rows: newrows, open: true });
+    sessionStorage.setItem('Location', JSON.stringify(newrows));
     e.target.reset();
   };
 
@@ -100,33 +100,29 @@ class Donate extends React.Component {
 
   renderTable() {
     const { classes } = this.props;
-    if (this.state.showDonors) {
+    if (this.state.showLocation) {
       return (
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Donations
+                  All Location
                 </Typography>
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Transaction ID</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Account Number</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell align="right">Amount</TableCell>
+                      <TableCell>Pincode</TableCell>
+                      <TableCell>Panchayat</TableCell>
+                      <TableCell>District</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
                       <TableRow key={row.id}>
-                        <TableCell>{row.tid}</TableCell>
-                        <TableCell>{row.date}</TableCell>
-                        <TableCell>{row.accNo}</TableCell>
-                        <TableCell>{row.contact}</TableCell>
-                        <TableCell align="right">{row.amount}</TableCell>
+                        <TableCell>{row.Pincode}</TableCell>
+                        <TableCell>{row.Panchayat}</TableCell>
+                        <TableCell>{row.District}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -165,13 +161,13 @@ class Donate extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Donation Successful!</span>}
+            message={<span id="client-snackbar">Location Added Successfully!</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Donate
+              Location
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
               <TextField
@@ -179,10 +175,10 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="tid"
-                label="Transaction ID"
-                name="tid"
-                type="text"
+                id="Pincode"
+                label="Pincode"
+                name="Pincode"
+                type="number"
                 autoFocus
               />
               <TextField
@@ -190,39 +186,20 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                name="accNo"
-                label="Account Number"
+                name="Panchayat"
+                label="Panchayat"
                 type="text"
-                id="accNo"
+                id="Panchayat"
               />
               <TextField
                 variant="outlined"
                 margin="normal"
                 required
                 fullWidth
-                name="contact"
-                label="Contact"
-                type="number"
-                id="contact"
-                inputProps={{ maxLength: 10, minLength: 10 }}
-                helperText={this.state.phoneErrorText}
-                validateOnBlur
-                onChange={(e) => {
-                  if (e.target.value.length !== 10)
-                    this.setState({ ...this.state, phone: true, phoneErrorText: "Phone Number must be of 10 digits." });
-                  else this.setState({ ...this.state, phone: false, phoneErrorText: "" });
-                }}
-                error={this.state.phone}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="amount"
-                label="Amount"
-                type="number"
-                id="amount"
+                name="District"
+                label="District"
+                type="text"
+                id="District"
               />
               <Button
                 type="submit"
@@ -231,7 +208,7 @@ class Donate extends React.Component {
                 color="primary"
                 className={classes.submit}
               >
-                Donate Now!
+                Add Location
               </Button>
               <Button
                 variant="contained"
@@ -241,22 +218,22 @@ class Donate extends React.Component {
                 onClick={(e) => {
                   console.log("came in");
                   e.preventDefault();
-                  if (!this.state.showDonors)
+                  if (!this.state.showLocation)
                     this.setState({
                       ...this.state,
-                      showDonors: true,
-                      showDonorsText: "Hide Donors",
+                      showLocation: true,
+                      showLocationText: "Hide Location",
                     });
                   else
                     this.setState({
                       ...this.state,
-                      showDonors: false,
-                      showDonorsText: "Show Donors",
+                      showLocation: false,
+                      showLocationText: "Show Location",
                     });
                   console.log(this.state);
                 }}
               >
-                {this.state.showDonorsText}
+                {this.state.showLocationText}
               </Button>
             </form>
           </div>
@@ -267,4 +244,4 @@ class Donate extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Donate);
+export default withStyles(styles, { withTheme: true })(Location);

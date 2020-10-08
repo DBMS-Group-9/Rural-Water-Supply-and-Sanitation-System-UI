@@ -21,32 +21,29 @@ import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
 // Generate Order Data
-function createData(id, JobCode, Designation, Shift) {
-  return { id, JobCode, Designation, Shift };
+function createData(id, SSID, SStatus, SEstimation, Pincode) {
+  return { id, SSID, SStatus, SEstimation, Pincode };
 }
 
 function initializeDB() {
-  let newrows = sessionStorage.getItem('Jobs');
+  let newrows = sessionStorage.getItem('SanitationSystems');
   if(newrows) {
     newrows = JSON.parse(newrows);
   }
   else {
     newrows = [
-      createData(0, 'J01','Admin','Full-time'),
-      createData(1, 'J02','Planning Engineer','Full-time'),
-      createData(2, 'J03','Project Manager','Full-time'),
-      createData(3, 'J04','Accountant','Full-time'),
-      createData(4, 'J05','Electrician','Morning'),
-      createData(5, 'J06','Electrician','Evening'),
-      createData(6, 'J07','Electrician','Night'),
-      createData(7, 'J08','Plumber','Morning'),
-      createData(8, 'J09','Plumber','Evening'),
-      createData(9, 'J10','Pumber','Night'),
-      createData(9, 'J11','House Keeping','Morning'),
-      createData(9, 'J12','House Keeping','Evening'),
-      createData(9, 'J13','House Keeping','Night'),
+      createData(0, "S001", "Constructed", "2100000", "641105"),
+      createData(1, "S002", "Constructed", "2000000", "641041"),
+      createData(2, "S003", "Approved", "1800000", "641062"),
+      createData(3, "S004", "Planned", "1500000", "635602"),
+      createData(4, "S005", "Constructred", "2000000", "641605"),
+      createData(5, "S006", "Constructred", "1700000", "609503"),
+      createData(6, "S007", "Approved", "2200000", "641112"),
+      createData(7, "S008", "Planned", "1600000", "621702"),
+      createData(8, "S009", "Constructred", "2300000", "626126"),
+      createData(9, "S010", "Approved", "2500000", "641655"),
     ]
-    sessionStorage.setItem('Jobs', JSON.stringify(newrows));
+    sessionStorage.setItem('SanitationSystems', JSON.stringify(newrows));
   }
   return newrows;
 }
@@ -74,12 +71,14 @@ const styles = (theme) => ({
   },
 });
 
-class Jobs extends React.Component {
+class SanitationSystems extends React.Component {
   state = {
     rows: initializeDB(),
-    showJobs: false,
-    showJobsText: "Show Jobs",
-    shiftSelect: '',
+    showSanitationSystems: false,
+    showSanitationSystemsText: "Show Sanitation Systems",
+    locationSelect: '',
+    statusSelect: '',
+    availableLocation: JSON.parse(sessionStorage.getItem('Location')),
     open: false,
   };
 
@@ -89,13 +88,14 @@ class Jobs extends React.Component {
     newrows.push(
       createData(
         this.state.rows.length,
-        e.target.JobCode.value,
-        e.target.Designation.value,
-        e.target.Shift.value
+        e.target.SSID.value,
+        e.target.SStatus.value,
+        e.target.SEstimation.value,
+        e.target.Pincode.value
       )
     );
-    this.setState({ ...this.state, rows: newrows, open: true, shiftSelect: '' });
-    sessionStorage.setItem('Jobs', JSON.stringify(newrows));
+    this.setState({ ...this.state, rows: newrows, open: true, locationSelect: '', statusSelect: '' });
+    sessionStorage.setItem('SanitationSystems', JSON.stringify(newrows));
     e.target.reset();
   };
 
@@ -108,29 +108,31 @@ class Jobs extends React.Component {
 
   renderTable() {
     const { classes } = this.props;
-    if (this.state.showJobs) {
+    if (this.state.showSanitationSystems) {
       return (
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Jobs
+                  All Sanitation Systems
                 </Typography>
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Job ID</TableCell>
-                      <TableCell>Designation</TableCell>
-                      <TableCell>Shift</TableCell>
+                      <TableCell>SSID</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Estimation</TableCell>
+                      <TableCell>Pincode</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
                       <TableRow key={row.id}>
-                        <TableCell>{row.JobCode}</TableCell>
-                        <TableCell>{row.Designation}</TableCell>
-                        <TableCell>{row.Shift}</TableCell>
+                        <TableCell>{row.SSID}</TableCell>
+                        <TableCell>{row.SStatus}</TableCell>
+                        <TableCell>{row.SEstimation}</TableCell>
+                        <TableCell>{row.Pincode}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -169,13 +171,13 @@ class Jobs extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Job Added Successfully!</span>}
+            message={<span id="client-snackbar">Sanitaion System Added Successfully!</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Jobs
+              Sanitation Systems
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
               <TextField
@@ -183,42 +185,60 @@ class Jobs extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="JobCode"
-                label="Job Code"
-                name="JobCode"
+                id="SSID"
+                label="SSID"
+                name="SSID"
                 type="text"
                 autoFocus
               />
+              <FormControl variant="outlined" fullWidth className={classes.form}>
+                <InputLabel id="Location-Label">
+                  Status
+                </InputLabel>
+                <Select
+                  labelId="Location-Label"
+                  id="SStatus"
+                  label="Status"
+                  name="SStatus"
+                  variant="outlined"
+                  value={this.state.statusSelect}
+                  onChange={(e) => {this.setState({ statusSelect: e.target.value })}}
+                  required
+                  fullWidth
+                >
+                  <MenuItem value={"Constructed"}>Constructed</MenuItem>
+                  <MenuItem value={"Planned"}>Planned</MenuItem>
+                  <MenuItem value={"Approved"}>Approved</MenuItem>
+                </Select>
+              </FormControl>
               <TextField
                 variant="outlined"
                 margin="normal"
                 required
                 fullWidth
-                name="Designation"
-                label="Designation"
-                type="text"
-                id="Designation"
+                name="SEstimation"
+                label="Estimation"
+                type="number"
+                id="SEstimation"
               />
               <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Shift-Label">
-                  Shift
+                <InputLabel id="Location-Label">
+                  Pincode
                 </InputLabel>
                 <Select
-                  labelId="Shift-Label"
-                  id="Shift"
-                  label="Shift"
-                  name="Shift"
+                  labelId="Location-Label"
+                  id="Pincode"
+                  label="Pincode"
+                  name="Pincode"
                   variant="outlined"
-                  margin="normal"
-                  value={this.state.shiftSelect}
-                  onChange={(e) => {this.setState({ shiftSelect: e.target.value })}}
+                  value={this.state.locationSelect}
+                  onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
                   required
                   fullWidth
                 >
-                  <MenuItem value={"Full-Time"}>Full Time</MenuItem>
-                  <MenuItem value={"Morning"}>Morning Shift</MenuItem>
-                  <MenuItem value={"Evening"}>Evening Shift</MenuItem>
-                  <MenuItem value={"Night"}>Night Shift</MenuItem>
+                  {this.state.availableLocation.map((pin) => (
+                      <MenuItem key={pin.Pincode} value={pin.Pincode}>{ `${pin.Pincode} - ${pin.Panchayat} - ${pin.District}` }</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
               <Button
@@ -228,7 +248,7 @@ class Jobs extends React.Component {
                 color="primary"
                 className={classes.submit}
               >
-                Add Job
+                Add Sanitation Systems
               </Button>
               <Button
                 variant="contained"
@@ -238,22 +258,22 @@ class Jobs extends React.Component {
                 onClick={(e) => {
                   console.log("came in");
                   e.preventDefault();
-                  if (!this.state.showJobs)
+                  if (!this.state.showSanitationSystems)
                     this.setState({
                       ...this.state,
-                      showJobs: true,
-                      showJobsText: "Hide Jobs",
+                      showSanitationSystems: true,
+                      showSanitationSystemsText: "Hide Sanitation Systems",
                     });
                   else
                     this.setState({
                       ...this.state,
-                      showJobs: false,
-                      showJobsText: "Show Jobs",
+                      showSanitationSystems: false,
+                      showSanitationSystemsText: "Show Sanitation Systems",
                     });
                   console.log(this.state);
                 }}
               >
-                {this.state.showJobsText}
+                {this.state.showSanitationSystemsText}
               </Button>
             </form>
           </div>
@@ -264,4 +284,4 @@ class Jobs extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Jobs);
+export default withStyles(styles, { withTheme: true })(SanitationSystems);
