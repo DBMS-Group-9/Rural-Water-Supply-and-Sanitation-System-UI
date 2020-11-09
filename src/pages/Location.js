@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from 'axios';
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -87,8 +88,16 @@ class Location extends React.Component {
       )
     );
     this.setState({ ...this.state, rows: newrows, open: true });
+    axios.post(`http://localhost:3001/api/location/setlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
+      .then(res => {
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+      });
     sessionStorage.setItem('Location', JSON.stringify(newrows));
     e.target.reset();
+
   };
 
   handleClose = (event, reason) => {
