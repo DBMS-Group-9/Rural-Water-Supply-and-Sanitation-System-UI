@@ -122,15 +122,15 @@ export default function Header() {
             >
               Donate
             </Link>
+            <Link
+              variant="button"
+              color="textPrimary"
+              href="/login"
+              className={classes.link}
+            >
+              Login
+            </Link>
           </nav>
-          {/*<Button
-            href="#"
-            color="primary"
-            variant="outlined"
-            className={classes.link}
-          >
-            Login
-          </Button>*/}
         </Toolbar>
       </AppBar>
     </React.Fragment>

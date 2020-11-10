@@ -17,32 +17,16 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, Pincode, Panchayat, District) {
-  return { id, Pincode, Panchayat, District };
-}
-
-function initializeDB() {
-  let newrows = sessionStorage.getItem('Location');
-  if(newrows) {
-    newrows = JSON.parse(newrows);
-  }
-  else {
-    newrows = [
-      createData(0, 641112,'Ettimadai','Coimbatore'),
-      createData(1, 641105,'Madukarai','Coimbatore'),
-      createData(2, 641041,'PN Pudur','Coimbatore'),
-      createData(3, 641062,'RG Pudur','Coimbatore'),
-      createData(4, 635602,'Adiyur','Vellore'),
-      createData(5, 641605,'Ugayanur','Tiruppur'),
-      createData(6, 609503,'Koothanur','Tiruppur'),
-      createData(7, 621702,'Ambil','Tiruchirappalli'),
-      createData(8, 626126,'Kunnur','Theni'),
-      createData(9, 641655,'Alathur','Coimbatore')
-    ]
-    sessionStorage.setItem('Location', JSON.stringify(newrows));
-  }
-  return newrows;
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/location/getalllocations`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -70,34 +54,31 @@ const styles = (theme) => ({
 
 class Location extends React.Component {
   state = {
-    rows: initializeDB(),
+    rows: [],
     showLocation: false,
     showLocationText: "Show Location",
+    snackbarMessage: "",
+    snackbarColor: "",
     open: false,
   };
 
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    this.setState({ rows: newrows });
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
-    var newrows = this.state.rows;
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.Pincode.value,
-        e.target.Panchayat.value,
-        e.target.District.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true });
-    axios.post(`http://localhost:3001/api/location/setlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
-      .then(res => {
-        console.log(res);
+    axios.post(`http://localhost:3001/api/location/addlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
       })
       .catch(err => {
         console.log(err);
+        this.setState({ ...this.state, open: true, snackbarMessage: err, snackbarColor: "red" });
       });
-    sessionStorage.setItem('Location', JSON.stringify(newrows));
     e.target.reset();
-
   };
 
   handleClose = (event, reason) => {
@@ -128,7 +109,7 @@ class Location extends React.Component {
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.Pincode}>
                         <TableCell>{row.Pincode}</TableCell>
                         <TableCell>{row.Panchayat}</TableCell>
                         <TableCell>{row.District}</TableCell>
@@ -156,7 +137,7 @@ class Location extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -170,7 +151,7 @@ class Location extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Location Added Successfully!</span>}
+          message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">

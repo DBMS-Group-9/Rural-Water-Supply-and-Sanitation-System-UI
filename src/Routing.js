@@ -12,6 +12,7 @@ import WaterSources from "./pages/WaterSources";
 import WaterUsage from "./pages/WaterUsage";
 import SanitationSystems from "./pages/SanitationSystems";
 import Expenditure from "./pages/Expenditure";
+import Login from "./pages/Login";
 
 export const HomeRoute = "/";
 export const AbstractRoute = "/abstract/";
@@ -23,6 +24,7 @@ export const WaterSourcesRoute = "/watersources/";
 export const WaterUsageRoute = "/waterusage/";
 export const SanitationSystemsRoute = "/sanitationsystems/";
 export const ExpenditureRoute = "/expenditure/";
+export const LoginRoute = "/login";
 
 class Routing extends React.Component {
   render() {
@@ -38,6 +40,7 @@ class Routing extends React.Component {
         <Route path={WaterUsageRoute} component={WaterUsage} />
         <Route path={SanitationSystemsRoute} component={SanitationSystems} />
         <Route path={ExpenditureRoute} component={Expenditure} />
+        <Route path={LoginRoute} component={Login} />
       </React.Fragment>
     );
   }
