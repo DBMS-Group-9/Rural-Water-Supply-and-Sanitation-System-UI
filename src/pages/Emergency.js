@@ -23,11 +23,12 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchJobs() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`)
+  await axios.get(`http://localhost:3001/api/utility/getemergencyjobs`)
       .then(res => {
         resdata = res.data.result;
+        console.log(resdata);
       })
       .catch(err => {
         console.log(err);
@@ -36,16 +37,16 @@ async function fetchDB() {
 }
 
 async function fetchLocations() {
-  let resdata = [];
-  await axios.get(`http://localhost:3001/api/location/getalllocations`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  return resdata;
-}
+    let resdata = [];
+    await axios.get(`http://localhost:3001/api/location/getalllocations`)
+        .then(res => {
+          resdata = res.data.result;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    return resdata;
+  }
 
 const styles = (theme) => ({
   seeMore: {
@@ -70,36 +71,39 @@ const styles = (theme) => ({
   },
 });
 
-class WaterSources extends React.Component {
+class Employee extends React.Component {
   state = {
     rows: [],
-    showWaterSources: false,
-    showWaterSourcesText: "Show Water Sources",
+    showEmployee: false,
+    jobSelect: '',
     locationSelect: '',
-    statusSelect: '',
+    shiftSelect: '',
     snackbarColor: '',
     snackbarMessage: '',
-    availableLocation: [],
-    open: false,
+    availableJobs: [],
+    availableLocation: []
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let jobs = await fetchJobs();
     let locations = await fetchLocations();
-    this.setState({ rows: newrows, availableLocation: locations });
+    this.setState({ availableJobs: jobs, availableLocation: locations });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
-    let ev = e;
-    axios.post(`http://localhost:3001/api/watersources/addwatersource`, { WStatus: e.target.WStatus.value, WEstimation: e.target.WEstimation.value, WCapacity: e.target.WCapacity.value, Pincode: e.target.Pincode.value })
+    axios.post(`http://localhost:3001/api/utility/emergencydetails`, { Designation: e.target.Designation.value, Shift: e.target.Shift.value, Pincode: e.target.Pincode.value })
       .then(async (res) => {
-        let newrows = await fetchDB();
-        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", statusSelect: '', locationSelect: '' });
-        ev.target.reset();
+        let newrows = res.data.result;
+        if(newrows.length == 0) {
+          this.setState({ ...this.state, open: true, snackbarMessage: "No Employees Found", snackbarColor: "red" });
+          return;
+        }
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", showEmployee: true });
       })
       .catch(err => {
+        console.log(err);
         this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
       });
   };
@@ -113,33 +117,31 @@ class WaterSources extends React.Component {
 
   renderTable() {
     const { classes } = this.props;
-    if (this.state.showWaterSources) {
+    if (this.state.showEmployee) {
       return (
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Water Sources
+                  Found Employees
                 </Typography>
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
-                      <TableCell>WSID</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Estimation</TableCell>
-                      <TableCell>Capacity</TableCell>
-                      <TableCell>Pincode</TableCell>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Contact</TableCell>
+                      <TableCell>Designation</TableCell>
+                      <TableCell>Shift</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.WSID}>
-                        <TableCell>{row.WSID}</TableCell>
-                        <TableCell>{row.WStatus}</TableCell>
-                        <TableCell>{row.WEstimation}</TableCell>
-                        <TableCell>{row.WCapacity}</TableCell>
-                        <TableCell>{row.Pincode}</TableCell>
+                      <TableRow key={row.EmpID}>
+                        <TableCell>{`${row.FName} ${row.LName}`}</TableCell>
+                        <TableCell>{row.EContact}</TableCell>
+                        <TableCell>{row.Designation}</TableCell>
+                        <TableCell>{row.Shift}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -185,61 +187,62 @@ class WaterSources extends React.Component {
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Water Sources
+              Service Needed
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
               <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Location-Label">
-                  Status
+                <InputLabel id="Job-Label">
+                  Job Code
                 </InputLabel>
                 <Select
-                  labelId="Location-Label"
-                  id="WStatus"
-                  label="Status"
-                  name="WStatus"
+                  labelId="Job-Label"
+                  id="Designation"
+                  label="Designation"
+                  name="Designation"
                   variant="outlined"
-                  value={this.state.statusSelect}
-                  onChange={(e) => {this.setState({ statusSelect: e.target.value })}}
+                  value={this.state.jobSelect}
+                  onOpen={(e) => {if(this.state.availableJobs.length === 0) this.setState({ open: true, snackbarMessage: "Jobs Unavailable!", snackbarColor: "red" })}}
+                  onChange={(e) => {this.setState({ jobSelect: e.target.value })}}
                   required
                   fullWidth
                 >
-                  <MenuItem value={"Constructed"}>Constructed</MenuItem>
-                  <MenuItem value={"Planned"}>Planned</MenuItem>
-                  <MenuItem value={"Approved"}>Approved</MenuItem>
+                  {this.state.availableJobs.map((job) => (
+                      <MenuItem key={job.JobCode} value={job.Designation}>{ job.Designation }</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="WEstimation"
-                label="Estimation"
-                type="number"
-                id="WEstimation"
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="WCapacity"
-                label="Capacity"
-                type="number"
-                id="WCapacity"
-              />              
               <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Location-Label">
-                  Pincode
+                <InputLabel id="Shift-Label">
+                  Shift
                 </InputLabel>
                 <Select
-                  labelId="Location-Label"
+                  labelId="Shift-Label"
+                  id="Shift"
+                  label="Shift"
+                  name="Shift"
+                  variant="outlined"
+                  value={this.state.shiftSelect}
+                  onChange={(e) => {this.setState({ shiftSelect: e.target.value })}}
+                  required
+                  fullWidth
+                >
+                  <MenuItem value={"Morning"}>Morning Shift</MenuItem>
+                  <MenuItem value={"Evening"}>Evening Shift</MenuItem>
+                  <MenuItem value={"Night"}>Night Shift</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl variant="outlined" fullWidth className={classes.form}>
+                <InputLabel id="Pincode-Label">
+                    Pincode
+                </InputLabel>
+                <Select
+                  labelId="Pincode-Label"
                   id="Pincode"
                   label="Pincode"
                   name="Pincode"
                   variant="outlined"
                   value={this.state.locationSelect}
-                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Locations Unavailable!", snackbarColor: "red" })}}
+                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Location Unavailable!", snackbarColor: "red" })}}
                   onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
                   required
                   fullWidth
@@ -256,32 +259,7 @@ class WaterSources extends React.Component {
                 color="primary"
                 className={classes.submit}
               >
-                Add Water Source
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                className={classes.submit}
-                onClick={(e) => {
-                  console.log("came in");
-                  e.preventDefault();
-                  if (!this.state.showWaterSources)
-                    this.setState({
-                      ...this.state,
-                      showWaterSources: true,
-                      showWaterSourcesText: "Hide Water Sources",
-                    });
-                  else
-                    this.setState({
-                      ...this.state,
-                      showWaterSources: false,
-                      showWaterSourcesText: "Show Water Sources",
-                    });
-                  console.log(this.state);
-                }}
-              >
-                {this.state.showWaterSourcesText}
+                Search
               </Button>
             </form>
           </div>
@@ -292,4 +270,4 @@ class WaterSources extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(WaterSources);
+export default withStyles(styles, { withTheme: true })(Employee);

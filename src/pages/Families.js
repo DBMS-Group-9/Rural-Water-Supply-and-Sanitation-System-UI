@@ -25,7 +25,7 @@ import Header from "../components/Header";
 
 async function fetchDB() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/expenditures/getallexpenditures`)
+  await axios.get(`http://localhost:3001/api/families/getallfamilies`)
       .then(res => {
         resdata = res.data.result;
       })
@@ -35,33 +35,9 @@ async function fetchDB() {
   return resdata;
 }
 
-async function fetchEmpID() {
+async function fetchLocations() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/employees/getallemployees`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  return resdata;
-}
-
-async function fetchWSID() {
-  let resdata = [];
-  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  return resdata;
-}
-
-async function fetchSSID() {
-  let resdata = [];
-  await axios.get(`http://localhost:3001/api/sanitationsystems/getallsanitationsystems`)
+  await axios.get(`http://localhost:3001/api/location/getalllocations`)
       .then(res => {
         resdata = res.data.result;
       })
@@ -94,41 +70,35 @@ const styles = (theme) => ({
   },
 });
 
-class Expenditure extends React.Component {
+class Families extends React.Component {
   state = {
     rows: [],
-    showExpenditure: false,
-    empidSelect:'',
-    ssidSelect:'',
-    wsidSelect:'',
-    showExpenditureText: "Show Expenditure",
+    showFamilies: false,
+    showFamiliesText: "Show Families",
+    locationSelect: '',
     snackbarColor: '',
     snackbarMessage: '',
-    availableEmpID: [],
-    availableWSID: [],
-    availableSSID: []
+    availableLocation: [],
+    open: false,
   };
 
   async componentDidMount() {
     let newrows = await fetchDB();
-    let EmpIDs = await fetchEmpID();
-    let WSIDs = await fetchWSID();
-    let SSIDs = await fetchSSID();
-    this.setState({ rows: newrows, availableEmpID: EmpIDs, availableWSID: WSIDs, availableSSID: SSIDs });
+    let locations = await fetchLocations();
+    this.setState({ rows: newrows, availableLocation: locations });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/expenditures/addexpenditure`, { EDate: e.target.EDate.value, EmpID: e.target.EmpID.value, WSID: e.target.WSID.value, SSID: e.target.SSID.value, EAmount: e.target.EAmount.value })
+    axios.post(`http://localhost:3001/api/families/addfamily`, { Persons: e.target.Persons.value, FHead: e.target.FHead.value, FContact: e.target.FContact.value, Pincode: e.target.Pincode.value })
       .then(async (res) => {
         let newrows = await fetchDB();
-        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", empidSelect: '', wsidSelect: '' ,ssidSelect: '' });
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
         ev.target.reset();
       })
       .catch(err => {
-        console.log(err);
         this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
       });
   };
@@ -142,35 +112,33 @@ class Expenditure extends React.Component {
 
   renderTable() {
     const { classes } = this.props;
-    if (this.state.showExpenditure) {
+    if (this.state.showFamilies) {
       return (
         <Container maxWidth="lg" className={classes.container}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Expenditures
+                  All Families
                 </Typography>
                 <Table size="medium">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Expense ID</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Employee ID</TableCell>
-                      <TableCell>WSID</TableCell>
-                      <TableCell>SSID</TableCell>
-                      <TableCell>Amount</TableCell>
+                      <TableCell>FID</TableCell>
+                      <TableCell>Persons</TableCell>
+                      <TableCell>FHead</TableCell>
+                      <TableCell>FContact</TableCell>
+                      <TableCell>Pincode</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.ExpenseID}>
-                        <TableCell>{row.ExpenseID}</TableCell>
-                        <TableCell>{row.EDate}</TableCell>
-                        <TableCell>{row.EmpID}</TableCell>
-                        <TableCell>{row.WSID}</TableCell>
-                        <TableCell>{row.SSID}</TableCell>
-                        <TableCell>{row.EAmount}</TableCell>
+                      <TableRow key={row.FID}>
+                        <TableCell>{row.FID}</TableCell>
+                        <TableCell>{row.Persons}</TableCell>
+                        <TableCell>{row.FHead}</TableCell>
+                        <TableCell>{row.FContact}</TableCell>
+                        <TableCell>{row.Pincode}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -188,7 +156,7 @@ class Expenditure extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
-        <Header />
+          <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -210,96 +178,67 @@ class Expenditure extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-          message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
+            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Expenditure
+              Families
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
+            <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="Persons"
+                label="Persons"
+                type="number"
+                id="Persons"
+                autoFocus
+              />
               <TextField
                 variant="outlined"
                 margin="normal"
                 required
                 fullWidth
-                id="ExpenseID"
-                label="Expense ID"
-                name="ExpenseID"
+                name="FHead"
+                label="Family Head"
                 type="text"
-                autoFocus
+                id="FHead"
               />
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="FContact"
+                label="Contact"
+                type="number"
+                id="FContact"
+              />              
               <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="EmpID-Label">
-                  Employee ID
+                <InputLabel id="Location-Label">
+                  Pincode
                 </InputLabel>
                 <Select
-                  labelId="EmpID-Label"
-                  id="EmpID"
-                  label="Employee ID"
-                  name="EmpID"
+                  labelId="Location-Label"
+                  id="Pincode"
+                  label="Pincode"
+                  name="Pincode"
                   variant="outlined"
-                  value={this.state.empidSelect}
-                  onChange={(e) => {this.setState({ empidSelect: e.target.value })}}
+                  value={this.state.locationSelect}
+                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Locations Unavailable!", snackbarColor: "red" })}}
+                  onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
                   required
                   fullWidth
                 >
-                  {this.state.availableEmpID.map((emp) => (
-                      <MenuItem key={emp.EmpID} value={emp.EmpID}>{ `${emp.EmpID} - ${emp.FName} ${emp.LName}` }</MenuItem>
+                  {this.state.availableLocation.map((pin) => (
+                      <MenuItem key={pin.Pincode} value={pin.Pincode}>{ `${pin.Pincode} - ${pin.Panchayat} - ${pin.District}` }</MenuItem>
                   ))}
                 </Select>
               </FormControl>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="WSID-Label">
-                    WSID
-                </InputLabel>
-                <Select
-                  labelId="WSID-Label"
-                  id="WSID"
-                  label="WSID"
-                  name="WSID"
-                  variant="outlined"
-                  value={this.state.wsidSelect}
-                  onChange={(e) => {this.setState({ wsidSelect: e.target.value })}}
-        
-                  fullWidth
-                >
-                  {this.state.availableWSID.map((ws) => (
-                      <MenuItem key={ws.WSID} value={ws.WSID}>{ `${ws.WSID} - ${ws.WCapacity} L - ${ws.Pincode}` }</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="SSID-Label">
-                    SSID
-                </InputLabel>
-                <Select
-                  labelId="SSID-Label"
-                  id="SSID"
-                  label="SSID"
-                  name="SSID"
-                  variant="outlined"
-                  value={this.state.ssidSelect}
-                  onChange={(e) => {this.setState({ ssidSelect: e.target.value })}}
-                  
-                  fullWidth
-                >
-                  {this.state.availableSSID.map((ss) => (
-                      <MenuItem key={ss.SSID} value={ss.SSID}>{ `${ss.SSID} - ${ss.Pincode}` }</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="EAmount"
-                label="Amount"
-                type="number"
-                id="EAmount"
-              />
               <Button
                 type="submit"
                 fullWidth
@@ -307,7 +246,7 @@ class Expenditure extends React.Component {
                 color="primary"
                 className={classes.submit}
               >
-                Add Expenditure
+                Add Family
               </Button>
               <Button
                 variant="contained"
@@ -317,22 +256,22 @@ class Expenditure extends React.Component {
                 onClick={(e) => {
                   console.log("came in");
                   e.preventDefault();
-                  if (!this.state.showExpenditure)
+                  if (!this.state.showFamilies)
                     this.setState({
                       ...this.state,
-                      showExpenditure: true,
-                      showExpenditureText: "Hide Expenditure",
+                      showFamilies: true,
+                      showFamiliesText: "Hide Families",
                     });
                   else
                     this.setState({
                       ...this.state,
-                      showExpenditure: false,
-                      showExpenditureText: "Show Expenditure",
+                      showFamilies: false,
+                      showFamiliesText: "Show Families",
                     });
                   console.log(this.state);
                 }}
               >
-                {this.state.showExpenditureText}
+                {this.state.showFamiliesText}
               </Button>
             </form>
           </div>
@@ -343,4 +282,4 @@ class Expenditure extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Expenditure);
+export default withStyles(styles, { withTheme: true })(Families);

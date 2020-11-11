@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from 'axios';
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,40 +21,30 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, SSID, SStatus, SEstimation, Pincode) {
-  return { id, SSID, SStatus, SEstimation, Pincode };
+import Header from "../components/Header";
+
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/sanitationsystems/getallsanitationsystems`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
-function initializeDB() {
-  let newrows = sessionStorage.getItem('SanitationSystems');
-  if(newrows) {
-    newrows = JSON.parse(newrows);
-  }
-  else {
-    newrows = [
-      createData(0, "S001", "Constructed", "2100000", "641105"),
-      createData(1, "S002", "Constructed", "2000000", "641041"),
-      createData(2, "S003", "Approved", "1800000", "641062"),
-      createData(3, "S004", "Planned", "1500000", "635602"),
-      createData(4, "S005", "Constructred", "2000000", "641605"),
-      createData(5, "S006", "Constructred", "1700000", "609503"),
-      createData(6, "S007", "Approved", "2200000", "641112"),
-      createData(7, "S008", "Planned", "1600000", "621702"),
-      createData(8, "S009", "Constructred", "2300000", "626126"),
-      createData(9, "S010", "Approved", "2500000", "641655"),
-    ]
-    sessionStorage.setItem('SanitationSystems', JSON.stringify(newrows));
-  }
-  return newrows;
-}
-
-function getFromSessionStorage(key) {
-  let obj = JSON.parse(sessionStorage.getItem(key));
-  if(!obj) {
-    obj = [];
-  }
-  return obj;
+async function fetchLocations() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/location/getalllocations`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -81,30 +72,36 @@ const styles = (theme) => ({
 
 class SanitationSystems extends React.Component {
   state = {
-    rows: initializeDB(),
+    rows: [],
     showSanitationSystems: false,
     showSanitationSystemsText: "Show Sanitation Systems",
+    snackbarColor: '',
+    snackbarMessage: '',
     locationSelect: '',
     statusSelect: '',
-    availableLocation: getFromSessionStorage('Location'),
+    availableLocation: [],
     open: false,
   };
 
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    let locations = await fetchLocations();
+    this.setState({ rows: newrows, availableLocation: locations });
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
-    var newrows = this.state.rows;
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.SSID.value,
-        e.target.SStatus.value,
-        e.target.SEstimation.value,
-        e.target.Pincode.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true, locationSelect: '', statusSelect: '' });
-    sessionStorage.setItem('SanitationSystems', JSON.stringify(newrows));
-    e.target.reset();
+    e.persist();
+    let ev = e;
+    axios.post(`http://localhost:3001/api/sanitationsystems/addsanitationsystem`, { SStatus: e.target.SStatus.value, SEstimation: e.target.SEstimation.value, Pincode: e.target.Pincode.value })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
+        ev.target.reset();
+      })
+      .catch(err => {
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });
   };
 
   handleClose = (event, reason) => {
@@ -136,7 +133,7 @@ class SanitationSystems extends React.Component {
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.SSID}>
                         <TableCell>{row.SSID}</TableCell>
                         <TableCell>{row.SStatus}</TableCell>
                         <TableCell>{row.SEstimation}</TableCell>
@@ -158,6 +155,7 @@ class SanitationSystems extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -165,7 +163,7 @@ class SanitationSystems extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -179,7 +177,7 @@ class SanitationSystems extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Sanitaion System Added Successfully!</span>}
+            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -188,17 +186,6 @@ class SanitationSystems extends React.Component {
               Sanitation Systems
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                id="SSID"
-                label="SSID"
-                name="SSID"
-                type="text"
-                autoFocus
-              />
               <FormControl variant="outlined" fullWidth className={classes.form}>
                 <InputLabel id="Location-Label">
                   Status
@@ -240,6 +227,7 @@ class SanitationSystems extends React.Component {
                   name="Pincode"
                   variant="outlined"
                   value={this.state.locationSelect}
+                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Locations Unavailable!", snackbarColor: "red" })}}
                   onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
                   required
                   fullWidth

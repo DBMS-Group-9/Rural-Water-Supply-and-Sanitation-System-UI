@@ -7,7 +7,6 @@ import Routing from './Routing.js';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import "./App.css";
-import Header from "./components/Header";
 import Footer from "./components/Footer";
 
 const history = createBrowserHistory();
@@ -29,11 +28,10 @@ class App extends Component {
     return (
       <React.Fragment>
         <CssBaseline />
-        <Header />
         <div style={{ marginBottom: 100 }}>
           <Router history={history}><Routing /></Router>
         </div>
-        <Footer
+        <Footer          
           title="The Database Alchemists"
           description="Developed by the students of Amrita Vishwa Vidyapeetham"
         />

@@ -11,7 +11,8 @@ import Hidden from '@material-ui/core/Hidden';
 
 const useStyles = makeStyles({
   card: {
-    display: 'flex'
+    display: 'flex',
+    margin: 10
   },
   cardDetails: {
     flex: 1,
@@ -35,13 +36,13 @@ export default function Abstract(props) {
                 {post.title}
               </Typography>
               <Typography variant="subtitle1" color="textSecondary">
-                {post.date}
+                {post.subtitle}
               </Typography>
               <Typography variant="subtitle1" paragraph>
                 {post.description}
               </Typography>
               <Typography variant="subtitle1" color="primary">
-                Continue reading...
+                {post.refText}
               </Typography>
             </CardContent>
           </div>

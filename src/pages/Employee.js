@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from 'axios';
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,40 +21,42 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, EmpID, FName, LName, EContact, JobCode, Pincode) {
-  return { id, EmpID, FName, LName, EContact, JobCode, Pincode };
+import Header from "../components/Header";
+
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/employees/getallemployees`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
-function initializeDB() {
-  let newrows = sessionStorage.getItem('Employee');
-  if(newrows) {
-    newrows = JSON.parse(newrows);
-  }
-  else {
-    newrows = [
-      createData(0, 'E001','Ashwin','Venkatesan',9867564361,'J01',641105),
-      createData(1, 'E002','Senthi','kumar',8985663421,'J05',641041),
-      createData(2, 'E003','Ganesh','Iyer',9676415267,'J07',641062),
-      createData(3, 'E004','Suresh','Nair',9989432678,'J04',635602),
-      createData(4, 'E005','Rama','Rao',8884587239,'J06',641605),
-      createData(5, 'E006','Ashwin','Raman',9876523465,'J02',609503),
-      createData(6, 'E007','Ramachandra','Iyer',9987643257,'J08',641112),
-      createData(7, 'E008','Deva','Pillai',9876345656,'J04',621702),
-      createData(8, 'E009','Dharun','Venkatesah',6308456579,'J03',626126),
-      createData(9, 'E010','Kavin','Thevar',9441343733,'J09',641655)
-    ]
-    sessionStorage.setItem('Employee', JSON.stringify(newrows));
-  }
-  return newrows;
+async function fetchJobs() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/jobs/getalljobs`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
-function getFromSessionStorage(key) {
-  let obj = JSON.parse(sessionStorage.getItem(key));
-  if(!obj) {
-    obj = [];
-  }
-  return obj;
+async function fetchLocations() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/location/getalllocations`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -81,46 +84,53 @@ const styles = (theme) => ({
 
 class Employee extends React.Component {
   state = {
-    rows: initializeDB(),
+    rows: [],
     showEmployee: false,
     showEmployeeText: "Show Employee",
     jobSelect: '',
     locationSelect: '',
-    availableJobs: getFromSessionStorage('Jobs'),
-    availableLocation: getFromSessionStorage('Location')
+    snackbarColor: '',
+    snackbarMessage: '',
+    availableJobs: [],
+    availableLocation: []
   };
+
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    let jobs = await fetchJobs();
+    let locations = await fetchLocations();
+    this.setState({ rows: newrows, availableJobs: jobs, availableLocation: locations });
+  }
 
   handleSubmit = (e) => {
     e.preventDefault();
-    var newrows = this.state.rows;
-    for (let row of newrows) {
-      if(row.EmpID === e.target.EmpID.value) {
-        this.setState({ submiterror: true });
-        return;
-      }
-    }
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.EmpID.value,
-        e.target.FName.value,
-        e.target.LName.value,
-        e.target.EContact.value,
-        e.target.JobCode.value,
-        e.target.Pincode.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true, jobSelect: '', locationSelect: '' });
-    sessionStorage.setItem('Employee', JSON.stringify(newrows));
-    e.target.reset();
+    e.persist();
+    let ev = e;
+    axios.post(`http://localhost:3001/api/employees/addemployee`, { FName: e.target.FName.value, LName: e.target.LName.value, EContact: e.target.EContact.value, JobCode: e.target.JobCode.value, Pincode: e.target.Pincode.value, Username: e.target.Username.value, Password: e.target.Password.value })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", jobSelect: '', locationSelect: '' });
+        ev.target.reset();
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });
   };
 
   handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
-    this.setState({ ...this.state, open: false, submiterror: false });
+    this.setState({ ...this.state, open: false });
   };
+
+  deleteComponent(index) {
+    console.log(index);
+    // const serviceData = this.state.serviceData.slice();
+    // serviceData.splice(index, 1);
+    // this.setState({ serviceData });
+  }
 
   renderTable() {
     const { classes } = this.props;
@@ -131,7 +141,7 @@ class Employee extends React.Component {
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Employee
+                  All Employees
                 </Typography>
                 <Table size="medium">
                   <TableHead>
@@ -139,18 +149,26 @@ class Employee extends React.Component {
                       <TableCell>Employee ID</TableCell>
                       <TableCell>Name</TableCell>
                       <TableCell>Contact</TableCell>
+                      <TableCell>Username</TableCell>
                       <TableCell>Job Code</TableCell>
                       <TableCell>Pincode</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.EmpID}>
                         <TableCell>{row.EmpID}</TableCell>
                         <TableCell>{`${row.FName} ${row.LName}`}</TableCell>
                         <TableCell>{row.EContact}</TableCell>
+                        <TableCell>{row.Username}</TableCell>
                         <TableCell>{row.JobCode}</TableCell>
                         <TableCell>{row.Pincode}</TableCell>
+                        <TableCell component="th" scope="row">
+                          <Button color="secondary" variant="contained" onClick={(event) => this.deleteComponent(row)}>
+                            Mark Resigned
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -168,6 +186,7 @@ class Employee extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -175,7 +194,7 @@ class Employee extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -189,31 +208,7 @@ class Employee extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Employee Added Successfully!</span>}
-          />
-        </Snackbar>
-        <Snackbar
-          open={this.state.submiterror}
-          autoHideDuration={6000}
-          onClose={this.handleClose}
-        >
-          <SnackbarContent
-            style={{
-              backgroundColor: "red",
-            }}
-            action={
-              <React.Fragment>
-                <IconButton
-                  size="small"
-                  aria-label="close"
-                  color="inherit"
-                  onClick={this.handleClose}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </React.Fragment>
-            }
-            message={<span id="client-snackbar">Employee ID Already Present!</span>}
+            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -227,21 +222,11 @@ class Employee extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="EmpID"
-                label="Employee ID"
-                name="EmpID"
-                type="text"
-                autoFocus
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
                 name="FName"
                 label="First Name"
                 type="text"
                 id="FName"
+                autoFocus
               />
               <TextField
                 variant="outlined"
@@ -274,6 +259,7 @@ class Employee extends React.Component {
                   name="JobCode"
                   variant="outlined"
                   value={this.state.jobSelect}
+                  onOpen={(e) => {if(this.state.availableJobs.length === 0) this.setState({ open: true, snackbarMessage: "Jobs Unavailable!", snackbarColor: "red" })}}
                   onChange={(e) => {this.setState({ jobSelect: e.target.value })}}
                   required
                   fullWidth
@@ -294,6 +280,7 @@ class Employee extends React.Component {
                   name="Pincode"
                   variant="outlined"
                   value={this.state.locationSelect}
+                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Location Unavailable!", snackbarColor: "red" })}}
                   onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
                   required
                   fullWidth
@@ -303,6 +290,26 @@ class Employee extends React.Component {
                   ))}
                 </Select>
               </FormControl>
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="Usename"
+                label="Usename"
+                type="text"
+                id="Username"
+              />
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="Password"
+                label="Password"
+                type="text"
+                id="Password"
+              />
               <Button
                 type="submit"
                 fullWidth

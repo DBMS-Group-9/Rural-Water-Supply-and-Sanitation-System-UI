@@ -17,6 +17,8 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
+import Header from "../components/Header";
+
 async function fetchDB() {
   let resdata = [];
   await axios.get(`http://localhost:3001/api/location/getalllocations`)
@@ -69,16 +71,18 @@ class Location extends React.Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
+    e.persist();
+    let ev = e;
     axios.post(`http://localhost:3001/api/location/addlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
       .then(async (res) => {
         let newrows = await fetchDB();
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
+        ev.target.reset();
       })
       .catch(err => {
         console.log(err);
-        this.setState({ ...this.state, open: true, snackbarMessage: err, snackbarColor: "red" });
-      });
-    e.target.reset();
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });    
   };
 
   handleClose = (event, reason) => {
@@ -130,6 +134,7 @@ class Location extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}

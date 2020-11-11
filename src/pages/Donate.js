@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from 'axios';
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -16,9 +17,18 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, tid, date, accNo, contact, amount) {
-  return { id, tid, date, accNo, contact, amount };
+import Header from "../components/Header";
+
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/donations/getalldonations`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -46,18 +56,7 @@ const styles = (theme) => ({
 
 class Donate extends React.Component {
   state = {
-    rows: [
-      createData(0, "T00001", "2020-01-22", "123456789101112", "9999999999", 60000000),
-      createData(1, "T00002", "2020-04-11", "123456769009224", "9676313275", 1000),
-      createData(2, "T00003", "2020-01-02", "123565678432156", "8985546789", 1000),
-      createData(3, "T00004", "2020-05-07", "567895432167889", "9678654329", 1000),
-      createData(4, "T00005", "2020-07-03", "123564567897656", "7702184949", 1000),
-      createData(5, "T00006", "2020-01-10", "678954325689567", "9490384823", 1000),
-      createData(6, "T00007", "2020-06-06", "789456345678956", "9989654329", 1000),
-      createData(7, "T00008", "2020-05-15", "657894325678976", "9989442189", 1000),
-      createData(8, "T00009", "2020-02-21", "456789543267798", "6302856789", 1000),
-      createData(9, "T00010", "2020-03-20", "345678934523678", "7302184965", 1000)
-    ],
+    rows: [],
     showDonors: false,
     showDonorsText: "Show Donors",
     phoneErrorText: "",
@@ -65,10 +64,15 @@ class Donate extends React.Component {
     open: false,
   };
 
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    this.setState({ rows: newrows });
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
-    if(this.state.phone)
-      return;
+    e.persist();
+    let ev = e;
     var d = new Date();
     var date =
       +("0" + d.getDate()).slice(-2) +
@@ -76,19 +80,15 @@ class Donate extends React.Component {
       ("0" + (d.getMonth() + 1)).slice(-2) +
       "-" +
       d.getFullYear();
-    var newrows = this.state.rows;
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.tid.value,
-        date,
-        e.target.accNo.value,
-        e.target.contact.value,
-        e.target.amount.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true });
-    e.target.reset();
+    axios.post(`http://localhost:3001/api/donations/adddonation`, { TransactionID: e.target.TransactionID.value, AccountNumber: e.target.AccountNumber.value, Amount: e.target.Amount.value, DContact: e.target.DContact.value, DDate: date })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
+        ev.target.reset();
+      })
+      .catch(err => {
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });
   };
 
   handleClose = (event, reason) => {
@@ -113,7 +113,7 @@ class Donate extends React.Component {
                   <TableHead>
                     <TableRow>
                       <TableCell>Transaction ID</TableCell>
-                      <TableCell>Date</TableCell>
+                      <TableCell>Date</TableCell>                      
                       <TableCell>Account Number</TableCell>
                       <TableCell>Contact</TableCell>
                       <TableCell align="right">Amount</TableCell>
@@ -121,12 +121,12 @@ class Donate extends React.Component {
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell>{row.tid}</TableCell>
-                        <TableCell>{row.date}</TableCell>
-                        <TableCell>{row.accNo}</TableCell>
-                        <TableCell>{row.contact}</TableCell>
-                        <TableCell align="right">{row.amount}</TableCell>
+                      <TableRow key={row.TransactionID}>
+                        <TableCell>{row.TransactionID}</TableCell>
+                        <TableCell>{row.DDate}</TableCell>
+                        <TableCell>{row.AccountNumber}</TableCell>
+                        <TableCell>{row.DContact}</TableCell>                        
+                        <TableCell align="right">{row.Amount}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -144,6 +144,7 @@ class Donate extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -151,7 +152,7 @@ class Donate extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -165,7 +166,7 @@ class Donate extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Donation Successful!</span>}
+          message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -179,9 +180,9 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="tid"
+                id="TransactionID"
                 label="Transaction ID"
-                name="tid"
+                name="TransactionID"
                 type="text"
                 autoFocus
               />
@@ -190,40 +191,39 @@ class Donate extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                name="accNo"
+                name="AccountNumber"
                 label="Account Number"
                 type="text"
-                id="accNo"
+                id="AccountNumber"
               />
               <TextField
                 variant="outlined"
                 margin="normal"
                 required
                 fullWidth
-                name="contact"
+                name="Amount"
+                label="Amount"
+                type="number"
+                id="Amount"
+              />
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                name="DContact"
                 label="Contact"
                 type="number"
-                id="contact"
+                id="DContact"
                 inputProps={{ maxLength: 10, minLength: 10 }}
                 helperText={this.state.phoneErrorText}
-                validateOnBlur
                 onChange={(e) => {
                   if (e.target.value.length !== 10)
                     this.setState({ ...this.state, phone: true, phoneErrorText: "Phone Number must be of 10 digits." });
                   else this.setState({ ...this.state, phone: false, phoneErrorText: "" });
                 }}
                 error={this.state.phone}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="amount"
-                label="Amount"
-                type="number"
-                id="amount"
-              />
+              />              
               <Button
                 type="submit"
                 fullWidth

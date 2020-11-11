@@ -1,0 +1,69 @@
+Normal User:
+
+    Emergency: Query All the Types of Electricians, Plumbers and House Keeping -------------------------------------- over
+
+Admin:
+
+    Manage Employee: Show All Employees. Have a mark Resigned Button to remove him from Job
+
+Planning Engineer:
+
+    Plan a new project. Enter details. State set to planned
+    
+
+Accountant:
+
+    Once the planning engineer plans a project, check if funds are available. If available, change state to approved. Else change to not approved which will in turn delete the record
+
+
+Project Manager:
+
+    Change state of the project from approved to either of i)under-construction or ii)under-maintanence iii)Working
+
+
+Operator:
+
+    Collects water usage record
+
+Do Validations and AccessControls in both Frontend and Backend
+
+Analytics:
+    Number of panchayats covered
+    Number of families Benefitted
+    Number of persons Benefitted
+    Number of Water Sources constructed
+    Number of Sanitation Systems constructed
+    Total expenditure
+    Donations
+
+    Show commisioning of Water Sources by year
+    Show commisioning of Sanitation Systems by year
+
+    Takes in pincode-panchayat-district
+
+    Shows:
+        Consumption: takes in year - shows month wise report for water used in that locality
+                     Average water consumption per family per month
+                     Average water consumption per person per month
+
+change status
+
+
+planning engineer will add new water sources and sanitation systems by giving the capacity and amount required for it and it will have the status planned
+t
+have a dashboard for accountant who will have access to budget remaining and lets have a approve button which will change the status to approved
+
+once the project is approved, he can switch to the exp tab and the approved projects will be available and once in the expenditure if we select the system and make the transaction, we will have the status of the system turned into "CONSTRUCTED"\
+
+Donate button should be there on the home page
+
+Need to write Donations route to avail Accountant see all donations. Need to add budget remaining button
+
+What is the project manager doing?
+we planned that he will approve projects. but how? can he see the budget remaining?
+
+Who is recording the Water Usage?
+
+
+
+

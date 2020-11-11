@@ -6,6 +6,8 @@ import Divider from "@material-ui/core/Divider";
 import Markdown from "./../components/Markdown";
 import AbstractPost from "./../static/Abstract.md";
 
+import Header from "../components/Header";
+
 const useStyles = makeStyles((theme) => ({
   markdown: {
     ...theme.typography.body2,
@@ -52,6 +54,7 @@ export default function Abstract() {
 
   return (
     <Grid item xs={12} md={8} justify="center" style={{ maxWidth: '100%', margin: 20 }}>
+      <Header />
       <Typography variant="h6" gutterBottom>
         Abstract
       </Typography>

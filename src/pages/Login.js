@@ -10,6 +10,8 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
+import Header from "../components/Header";
+
 const styles = (theme) => ({
   seeMore: {
     marginTop: theme.spacing(3),
@@ -33,7 +35,7 @@ const styles = (theme) => ({
   },
 });
 
-class Location extends React.Component {
+class Login extends React.Component {
   state = {
     snackbarMessage: "",
     snackbarColor: "",
@@ -44,8 +46,12 @@ class Location extends React.Component {
     e.preventDefault();
     axios.post(`http://localhost:3001/api/auth/login`, { Username: e.target.Username.value, Password: e.target.Password.value })
       .then(async (res) => {
+        console.log(res.data);
+        sessionStorage.setItem('Token', res.data.Token);
+        sessionStorage.setItem('Designation', res.data.Designation);
         this.setState({ ...this.state, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
-        this.props.history.push('/');
+        let self = this;
+        setTimeout(function(){ self.props.history.push('/Dashboard'); }, 1000);
       })
       .catch(err => {
         this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
@@ -64,6 +70,7 @@ class Location extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -91,7 +98,7 @@ class Location extends React.Component {
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Location
+              Login
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
               <TextField
@@ -111,7 +118,7 @@ class Location extends React.Component {
                 fullWidth
                 name="Password"
                 label="Password"
-                type="text"
+                type="password"
                 id="Password"
               />
               <Button
@@ -131,4 +138,4 @@ class Location extends React.Component {
   }
 }
 
-export default withStyles(styles, { withTheme: true })(Location);
+export default withStyles(styles, { withTheme: true })(Login);

@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid';
 
 import MainPost from '../components/MainPost';
 import Abstract from '../components/MiniPosts';
+import Header from "../components/Header";
 
 class Homepage extends React.Component {
 
@@ -18,12 +19,13 @@ class Homepage extends React.Component {
     Abstract: [
       {
         title: 'Abstact',
-        date: 'Abstract of the Project',
+        subtitle: 'Abstract of the Project',
         description:
           'The Failure of Rural Communities to understand the need of water resources as a social good and their inability to adhere to hygienic sanitation practice...',
         image: require('./../static/HomeCover.jpg'),
         imageText: 'Image Text',
-        ref: '/abstract'
+        ref: '/abstract',
+        refText: 'Continue Reading...'
       }
     ]
   }
@@ -32,6 +34,7 @@ class Homepage extends React.Component {
     return (
       <React.Fragment>
         <CssBaseline />
+        <Header />
         <MainPost post={this.state.MainPost} />
         <Grid container justify="center" >
           {this.state.Abstract.map((post) => (

@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from 'axios';
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,35 +21,18 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, JobCode, Designation, Shift) {
-  return { id, JobCode, Designation, Shift };
-}
+import Header from "../components/Header";
 
-function initializeDB() {
-  let newrows = sessionStorage.getItem('Jobs');
-  if(newrows) {
-    newrows = JSON.parse(newrows);
-  }
-  else {
-    newrows = [
-      createData(0, 'J01','Admin','Full-time'),
-      createData(1, 'J02','Planning Engineer','Full-time'),
-      createData(2, 'J03','Project Manager','Full-time'),
-      createData(3, 'J04','Accountant','Full-time'),
-      createData(4, 'J05','Electrician','Morning'),
-      createData(5, 'J06','Electrician','Evening'),
-      createData(6, 'J07','Electrician','Night'),
-      createData(7, 'J08','Plumber','Morning'),
-      createData(8, 'J09','Plumber','Evening'),
-      createData(9, 'J10','Pumber','Night'),
-      createData(9, 'J11','House Keeping','Morning'),
-      createData(9, 'J12','House Keeping','Evening'),
-      createData(9, 'J13','House Keeping','Night'),
-    ]
-    sessionStorage.setItem('Jobs', JSON.stringify(newrows));
-  }
-  return newrows;
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/jobs/getalljobs`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -76,27 +60,34 @@ const styles = (theme) => ({
 
 class Jobs extends React.Component {
   state = {
-    rows: initializeDB(),
+    rows: [],
     showJobs: false,
     showJobsText: "Show Jobs",
+    snackbarMessage: "",
+    snackbarColor: "",
     shiftSelect: '',
     open: false,
   };
 
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    this.setState({ rows: newrows });
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
-    var newrows = this.state.rows;
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.JobCode.value,
-        e.target.Designation.value,
-        e.target.Shift.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true, shiftSelect: '' });
-    sessionStorage.setItem('Jobs', JSON.stringify(newrows));
-    e.target.reset();
+    e.persist();
+    let ev = e;
+    axios.post(`http://localhost:3001/api/jobs/addjob`, { Designation: e.target.Designation.value, Shift: e.target.Shift.value })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", shiftSelect: '' });
+        ev.target.reset();
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });    
   };
 
   handleClose = (event, reason) => {
@@ -127,7 +118,7 @@ class Jobs extends React.Component {
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.JobCode}>
                         <TableCell>{row.JobCode}</TableCell>
                         <TableCell>{row.Designation}</TableCell>
                         <TableCell>{row.Shift}</TableCell>
@@ -148,6 +139,7 @@ class Jobs extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -155,7 +147,7 @@ class Jobs extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -169,7 +161,7 @@ class Jobs extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Job Added Successfully!</span>}
+            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -183,21 +175,11 @@ class Jobs extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                id="JobCode"
-                label="Job Code"
-                name="JobCode"
-                type="text"
-                autoFocus
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
                 name="Designation"
                 label="Designation"
                 type="text"
                 id="Designation"
+                autoFocus
               />
               <FormControl variant="outlined" fullWidth className={classes.form}>
                 <InputLabel id="Shift-Label">
@@ -209,7 +191,6 @@ class Jobs extends React.Component {
                   label="Shift"
                   name="Shift"
                   variant="outlined"
-                  margin="normal"
                   value={this.state.shiftSelect}
                   onChange={(e) => {this.setState({ shiftSelect: e.target.value })}}
                   required

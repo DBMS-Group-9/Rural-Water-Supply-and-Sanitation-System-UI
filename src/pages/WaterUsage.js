@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -20,40 +21,30 @@ import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { withStyles } from "@material-ui/core/styles";
 
-// Generate Order Data
-function createData(id, WSID, Month, Year, Usage) {
-  return { id, WSID, Month, Year, Usage };
+import Header from "../components/Header";
+
+async function fetchDB() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/waterusages/getallwaterusages`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
-function initializeDB() {
-  let newrows = sessionStorage.getItem('WaterUsage');
-  if(newrows) {
-    newrows = JSON.parse(newrows);
-  }
-  else {
-    newrows = [
-      createData(0, 'W002','January',2020,20000),
-      createData(1, 'W007','March',2020,30000),
-      createData(2, 'W008','November',2020,25000),
-      createData(3, 'W002','February',2020,9000),
-      createData(4, 'W008','January',2020,30000),
-      createData(5, 'W003','April',2020,25000),
-      createData(6, 'W007','February',2020,17000),
-      createData(7, 'W005','September',2020,22000),
-      createData(8, 'W003','June',2020,15000),
-      createData(9, 'W002','July',2020,21000)
-    ]
-    sessionStorage.setItem('WaterUsage', JSON.stringify(newrows));
-  }
-  return newrows;
-}
-
-function getFromSessionStorage(key) {
-  let obj = JSON.parse(sessionStorage.getItem(key));
-  if(!obj) {
-    obj = [];
-  }
-  return obj;
+async function fetchWSID() {
+  let resdata = [];
+  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`)
+      .then(res => {
+        resdata = res.data.result;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  return resdata;
 }
 
 const styles = (theme) => ({
@@ -81,31 +72,38 @@ const styles = (theme) => ({
 
 class WaterUsage extends React.Component {
   state = {
-    rows: initializeDB(),
+    rows: [],
     showWaterUsage: false,
-    showWaterUsageText: "Show Water Usage",
+    showWaterUsageText: "Show Water Usages",
+    snackbarMessage: '',
+    snackbarColor: '',
     wsidSelect: '',
     monthSelect: '',
     yearSelect: '',
-    availableWSID: getFromSessionStorage('WaterSources'),
+    availableWSID: [],
     open: false,
   };
 
+  async componentDidMount() {
+    let newrows = await fetchDB();
+    let WSIDs = await fetchWSID();
+    this.setState({ rows: newrows, availableWSID: WSIDs });
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
-    var newrows = this.state.rows;
-    newrows.push(
-      createData(
-        this.state.rows.length,
-        e.target.WSID.value,
-        e.target.Month.value,
-        e.target.Year.value,
-        e.target.Usage.value
-      )
-    );
-    this.setState({ ...this.state, rows: newrows, open: true, wsidSelect: '', monthSelect: '', yearSelect: '' });
-    sessionStorage.setItem('WaterUsage', JSON.stringify(newrows));
-    e.target.reset();
+    e.persist();
+    let ev = e;
+    axios.post(`http://localhost:3001/api/waterusages/addwaterusage`, { WSID: e.target.WSID.value, Month: e.target.Month.value, Year: e.target.Year.value, Usages: e.target.Usages.value })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", wsidSelect: '', monthSelect: '', yearSelect: '' });
+        ev.target.reset();
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+      });
   };
 
   handleClose = (event, reason) => {
@@ -124,7 +122,7 @@ class WaterUsage extends React.Component {
             <Grid item xs={12}>
               <Paper className={classes.paper}>
                 <Typography component="h2" variant="h6" gutterBottom>
-                  All Water Usage
+                  All Water Usages
                 </Typography>
                 <Table size="medium">
                   <TableHead>
@@ -132,16 +130,16 @@ class WaterUsage extends React.Component {
                       <TableCell>WSID</TableCell>
                       <TableCell>Month</TableCell>
                       <TableCell>Year</TableCell>
-                      <TableCell align="right">Usage</TableCell>
+                      <TableCell align="right">Usages</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {this.state.rows.map((row) => (
-                      <TableRow key={row.id}>
+                      <TableRow key={`${row.WSID}-${row.Month}-${row.Year}`}>
                         <TableCell>{row.WSID}</TableCell>
                         <TableCell>{row.Month}</TableCell>
                         <TableCell>{row.Year}</TableCell>
-                        <TableCell>{row.Usage}</TableCell>
+                        <TableCell>{row.Usages}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -159,6 +157,7 @@ class WaterUsage extends React.Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
+        <Header />
         <Snackbar
           open={this.state.open}
           autoHideDuration={6000}
@@ -166,7 +165,7 @@ class WaterUsage extends React.Component {
         >
           <SnackbarContent
             style={{
-              backgroundColor: "green",
+              backgroundColor: this.state.snackbarColor,
             }}
             action={
               <React.Fragment>
@@ -180,13 +179,13 @@ class WaterUsage extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">Water Usage Registered Successfully!</span>}
+            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
-              Water Usage
+              Water Usages
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
               <FormControl variant="outlined" fullWidth className={classes.form}>
@@ -200,6 +199,7 @@ class WaterUsage extends React.Component {
                   name="WSID"
                   variant="outlined"
                   value={this.state.wsidSelect}
+                  onOpen={(e) => {if(this.state.availableWSID.length === 0) this.setState({ open: true, snackbarMessage: "WaterSources Unavailable!", snackbarColor: "red" })}}
                   onChange={(e) => {this.setState({ wsidSelect: e.target.value })}}
                   required
                   fullWidth
@@ -272,10 +272,10 @@ class WaterUsage extends React.Component {
                 margin="normal"
                 required
                 fullWidth
-                name="Usage"
-                label="Usage"
+                name="Usages"
+                label="Usages"
                 type="number"
-                id="Usage"
+                id="Usages"
               />
               <Button
                 type="submit"
@@ -298,13 +298,13 @@ class WaterUsage extends React.Component {
                     this.setState({
                       ...this.state,
                       showWaterUsage: true,
-                      showWaterUsageText: "Hide Water Usage",
+                      showWaterUsageText: "Hide Water Usages",
                     });
                   else
                     this.setState({
                       ...this.state,
                       showWaterUsage: false,
-                      showWaterUsageText: "Show Water Usage",
+                      showWaterUsageText: "Show Water Usages",
                     });
                   console.log(this.state);
                 }}
