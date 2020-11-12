@@ -76,7 +76,6 @@ class WaterSources extends React.Component {
     showWaterSources: false,
     showWaterSourcesText: "Show Water Sources",
     locationSelect: '',
-    statusSelect: '',
     snackbarColor: '',
     snackbarMessage: '',
     availableLocation: [],
@@ -93,10 +92,10 @@ class WaterSources extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/watersources/addwatersource`, { WStatus: e.target.WStatus.value, WEstimation: e.target.WEstimation.value, WCapacity: e.target.WCapacity.value, Pincode: e.target.Pincode.value })
+    axios.post(`http://localhost:3001/api/watersources/addwatersource`, { WStatus: 'Planned', WEstimation: e.target.WEstimation.value, WCapacity: e.target.WCapacity.value, Pincode: e.target.Pincode.value })
       .then(async (res) => {
         let newrows = await fetchDB();
-        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", statusSelect: '', locationSelect: '' });
+        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
         ev.target.reset();
       })
       .catch(err => {
@@ -187,27 +186,7 @@ class WaterSources extends React.Component {
             <Typography component="h1" variant="h5">
               Water Sources
             </Typography>
-            <form className={classes.form} onSubmit={this.handleSubmit}>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Location-Label">
-                  Status
-                </InputLabel>
-                <Select
-                  labelId="Location-Label"
-                  id="WStatus"
-                  label="Status"
-                  name="WStatus"
-                  variant="outlined"
-                  value={this.state.statusSelect}
-                  onChange={(e) => {this.setState({ statusSelect: e.target.value })}}
-                  required
-                  fullWidth
-                >
-                  <MenuItem value={"Constructed"}>Constructed</MenuItem>
-                  <MenuItem value={"Planned"}>Planned</MenuItem>
-                  <MenuItem value={"Approved"}>Approved</MenuItem>
-                </Select>
-              </FormControl>
+            <form className={classes.form} onSubmit={this.handleSubmit}>            
               <TextField
                 variant="outlined"
                 margin="normal"
@@ -217,6 +196,7 @@ class WaterSources extends React.Component {
                 label="Estimation"
                 type="number"
                 id="WEstimation"
+                autoFocus
               />
               <TextField
                 variant="outlined"

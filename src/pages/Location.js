@@ -15,6 +15,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
@@ -52,6 +53,18 @@ const styles = (theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: 'relative',
+  },
+  buttonProgress: {
+    color: 'white',
+    position: 'absolute',
+    top: '55%',
+    left: '85%',
+    marginTop: -12,
+    marginLeft: -12,
+  },
 });
 
 class Location extends React.Component {
@@ -59,6 +72,7 @@ class Location extends React.Component {
     rows: [],
     showLocation: false,
     showLocationText: "Show Location",
+    loading: false,
     snackbarMessage: "",
     snackbarColor: "",
     open: false,
@@ -73,6 +87,7 @@ class Location extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
+    this.setState({ loading: true });
     axios.post(`http://localhost:3001/api/location/addlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
       .then(async (res) => {
         let newrows = await fetchDB();
@@ -82,7 +97,8 @@ class Location extends React.Component {
       .catch(err => {
         console.log(err);
         this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
-      });    
+      });   
+    this.setState({ loading: false });
   };
 
   handleClose = (event, reason) => {
@@ -196,15 +212,18 @@ class Location extends React.Component {
                 type="text"
                 id="District"
               />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-              >
-                Add Location
-              </Button>
+              <div className={classes.wrapper}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                >
+                  Add Location
+                </Button>
+                {this.state.loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+              </div>
               <Button
                 variant="contained"
                 color="primary"

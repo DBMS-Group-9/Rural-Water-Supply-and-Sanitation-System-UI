@@ -10,8 +10,12 @@ import Jobs from "./pages/Jobs";
 import Location from "./pages/Location";
 import Employee from "./pages/Employee";
 import WaterSources from "./pages/WaterSources";
+import ApproveWaterSources from "./pages/ApproveWaterSources";
+import ManageWaterSources from "./pages/ManageWaterSources";
 import WaterUsage from "./pages/WaterUsage";
 import SanitationSystems from "./pages/SanitationSystems";
+import ApproveSanitationSystems from "./pages/ApproveSanitationSystems";
+import ManageSanitationSystems from "./pages/ManageSanitationSystems";
 import Families from "./pages/Families";
 import Emergency from "./pages/Emergency";
 import Expenditure from "./pages/Expenditure";
@@ -25,8 +29,12 @@ export const JobsRoute = "/jobs/";
 export const LocationRoute = "/location/";
 export const EmployeeRoute = "/employee/";
 export const WaterSourcesRoute = "/watersources/";
+export const ApproveWaterSourcesRoute = "/approvewatersources/";
+export const ManageWaterSourcesRoute = "/managewatersources/";
 export const WaterUsageRoute = "/waterusage/";
 export const SanitationSystemsRoute = "/sanitationsystems/";
+export const ApproveSanitationSystemsRoute = "/approvesanitationsystems/";
+export const ManageSanitationSystemsRoute = "/managesanitationsystems/";
 export const FamiliesRoute = "/families/";
 export const EmergencyRoute = "/emergency/";
 export const ExpenditureRoute = "/expenditure/";
@@ -44,8 +52,12 @@ class Routing extends React.Component {
         <Route path={LocationRoute} component={Location} />
         <Route path={EmployeeRoute} component={Employee} />
         <Route path={WaterSourcesRoute} component={WaterSources} />
+        <Route path={ApproveWaterSourcesRoute} component={ApproveWaterSources} />
+        <Route path={ManageWaterSourcesRoute} component={ManageWaterSources} />
         <Route path={WaterUsageRoute} component={WaterUsage} />
         <Route path={SanitationSystemsRoute} component={SanitationSystems} />
+        <Route path={ApproveSanitationSystemsRoute} component={ApproveSanitationSystems} />
+        <Route path={ManageSanitationSystemsRoute} component={ManageSanitationSystems} />
         <Route path={FamiliesRoute} component={Families} />
         <Route path={ExpenditureRoute} component={Expenditure} />
         <Route path={EmergencyRoute} component={Emergency} />

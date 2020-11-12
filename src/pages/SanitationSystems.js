@@ -78,7 +78,6 @@ class SanitationSystems extends React.Component {
     snackbarColor: '',
     snackbarMessage: '',
     locationSelect: '',
-    statusSelect: '',
     availableLocation: [],
     open: false,
   };
@@ -93,7 +92,7 @@ class SanitationSystems extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/sanitationsystems/addsanitationsystem`, { SStatus: e.target.SStatus.value, SEstimation: e.target.SEstimation.value, Pincode: e.target.Pincode.value })
+    axios.post(`http://localhost:3001/api/sanitationsystems/addsanitationsystem`, { SStatus: 'Planned', SEstimation: e.target.SEstimation.value, Pincode: e.target.Pincode.value })
       .then(async (res) => {
         let newrows = await fetchDB();
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
@@ -186,26 +185,6 @@ class SanitationSystems extends React.Component {
               Sanitation Systems
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Location-Label">
-                  Status
-                </InputLabel>
-                <Select
-                  labelId="Location-Label"
-                  id="SStatus"
-                  label="Status"
-                  name="SStatus"
-                  variant="outlined"
-                  value={this.state.statusSelect}
-                  onChange={(e) => {this.setState({ statusSelect: e.target.value })}}
-                  required
-                  fullWidth
-                >
-                  <MenuItem value={"Constructed"}>Constructed</MenuItem>
-                  <MenuItem value={"Planned"}>Planned</MenuItem>
-                  <MenuItem value={"Approved"}>Approved</MenuItem>
-                </Select>
-              </FormControl>
               <TextField
                 variant="outlined"
                 margin="normal"
@@ -215,6 +194,7 @@ class SanitationSystems extends React.Component {
                 label="Estimation"
                 type="number"
                 id="SEstimation"
+                autoFocus
               />
               <FormControl variant="outlined" fullWidth className={classes.form}>
                 <InputLabel id="Location-Label">

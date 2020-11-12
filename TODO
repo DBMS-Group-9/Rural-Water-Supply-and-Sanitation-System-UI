@@ -4,26 +4,26 @@ Normal User:
 
 Admin:
 
-    Manage Employee: Show All Employees. Have a mark Resigned Button to remove him from Job
+    Manage Employee: Show All Employees. Have a mark Resigned Button to remove him from Job ------------------------- over
 
 Planning Engineer:
 
-    Plan a new project. Enter details. State set to planned
+    Plan a new project. Enter details. State set to planned --------------------------------------------------------- over
     
-
 Accountant:
 
-    Once the planning engineer plans a project, check if funds are available. If available, change state to approved. Else change to not approved which will in turn delete the record
+    Once the planning engineer plans a project, check if funds are available. 
+        If available, change state to approved. Else change to not approved which will in turn delete the record ---- over
 
 
 Project Manager:
 
-    Change state of the project from approved to either of i)under-construction or ii)under-maintanence iii)Working
+    Change state of the project from approved to either of i)under-construction or ii)under-maintanence iii)Working - 
 
 
 Operator:
 
-    Collects water usage record
+    Collects water usage record ------------------------------------------------------------------------------------- over
 
 Do Validations and AccessControls in both Frontend and Backend
 
@@ -63,7 +63,6 @@ What is the project manager doing?
 we planned that he will approve projects. but how? can he see the budget remaining?
 
 Who is recording the Water Usage?
-
 
 
 

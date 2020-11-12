@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import axios from 'axios';
+import axios from "axios";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -13,49 +13,57 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from '@material-ui/core/FormControl';
+import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import IconButton from "@material-ui/core/IconButton";
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import CloseIcon from "@material-ui/icons/Close";
+
 import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
+import Resign from "../static/resign.svg";
 
 async function fetchDB() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/employees/getallemployees`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
+  await axios
+    .get(`http://localhost:3001/api/employees/getallemployees`)
+    .then((res) => {
+      resdata = res.data.result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return resdata;
 }
 
 async function fetchJobs() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/jobs/getalljobs`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
+  await axios
+    .get(`http://localhost:3001/api/jobs/getalljobs`)
+    .then((res) => {
+      resdata = res.data.result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return resdata;
 }
 
 async function fetchLocations() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/location/getalllocations`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
+  await axios
+    .get(`http://localhost:3001/api/location/getalllocations`)
+    .then((res) => {
+      resdata = res.data.result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return resdata;
 }
 
@@ -87,34 +95,62 @@ class Employee extends React.Component {
     rows: [],
     showEmployee: false,
     showEmployeeText: "Show Employee",
-    jobSelect: '',
-    locationSelect: '',
-    snackbarColor: '',
-    snackbarMessage: '',
+    jobSelect: "",
+    locationSelect: "",
+    deleteSelect: null,
+    snackbarColor: "",
+    snackbarMessage: "",
+    openDialog: false,
     availableJobs: [],
-    availableLocation: []
+    availableLocation: [],
   };
 
   async componentDidMount() {
     let newrows = await fetchDB();
     let jobs = await fetchJobs();
     let locations = await fetchLocations();
-    this.setState({ rows: newrows, availableJobs: jobs, availableLocation: locations });
+    this.setState({
+      rows: newrows,
+      availableJobs: jobs,
+      availableLocation: locations,
+    });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/employees/addemployee`, { FName: e.target.FName.value, LName: e.target.LName.value, EContact: e.target.EContact.value, JobCode: e.target.JobCode.value, Pincode: e.target.Pincode.value, Username: e.target.Username.value, Password: e.target.Password.value })
+    axios
+      .post(`http://localhost:3001/api/employees/addemployee`, {
+        FName: e.target.FName.value,
+        LName: e.target.LName.value,
+        EContact: e.target.EContact.value,
+        JobCode: e.target.JobCode.value,
+        Pincode: e.target.Pincode.value,
+        Username: e.target.Username.value,
+        Password: e.target.Password.value,
+      })
       .then(async (res) => {
         let newrows = await fetchDB();
-        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", jobSelect: '', locationSelect: '' });
+        this.setState({
+          ...this.state,
+          rows: newrows,
+          snackbarMessage: res.data.message,
+          open: true,
+          snackbarColor: "green",
+          jobSelect: "",
+          locationSelect: "",
+        });
         ev.target.reset();
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
-        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+        this.setState({
+          ...this.state,
+          open: true,
+          snackbarMessage: err.response.data.message,
+          snackbarColor: "red",
+        });
       });
   };
 
@@ -125,11 +161,43 @@ class Employee extends React.Component {
     this.setState({ ...this.state, open: false });
   };
 
-  deleteComponent(index) {
-    console.log(index);
-    // const serviceData = this.state.serviceData.slice();
-    // serviceData.splice(index, 1);
-    // this.setState({ serviceData });
+  handleDisagree = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    this.setState({ ...this.state, openDialog: false, deleteSelect: null  });
+  };
+
+  handleAgree = () => {
+    console.log("resign",this.state.deleteSelect);
+    axios
+      .post(`http://localhost:3001/api/employees/markresigned`, {
+        EmpID: this.state.deleteSelect.EmpID
+      })
+      .then(async (res) => {
+        let newrows = await fetchDB();
+        this.setState({
+          ...this.state,
+          rows: newrows,
+          snackbarMessage: res.data.message,
+          open: true,
+          snackbarColor: "green",
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        this.setState({
+          ...this.state,
+          open: true,
+          snackbarMessage: err.response.data.message,
+          snackbarColor: "red",
+        });
+      });
+    this.setState({ ...this.state, openDialog: false, deleteSelect: null });
+  }
+
+  deleteComponent(row) {
+    this.setState({ deleteSelect: row, openDialog: true });
   }
 
   renderTable() {
@@ -165,9 +233,14 @@ class Employee extends React.Component {
                         <TableCell>{row.JobCode}</TableCell>
                         <TableCell>{row.Pincode}</TableCell>
                         <TableCell component="th" scope="row">
-                          <Button color="secondary" variant="contained" onClick={(event) => this.deleteComponent(row)}>
-                            Mark Resigned
-                          </Button>
+                          <IconButton
+                            color="secondary"
+                            aria-label="mark resigned"
+                            component="span"
+                            onClick={(event) => this.deleteComponent(row)}
+                          >
+                            <img height="24" width="24" src={Resign}></img>
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -208,7 +281,9 @@ class Employee extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
+            message={
+              <span id="client-snackbar">{this.state.snackbarMessage}</span>
+            }
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -248,10 +323,12 @@ class Employee extends React.Component {
                 type="number"
                 id="EContact"
               />
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Job-Label">
-                  Job Code
-                </InputLabel>
+              <FormControl
+                variant="outlined"
+                fullWidth
+                className={classes.form}
+              >
+                <InputLabel id="Job-Label">Job Code</InputLabel>
                 <Select
                   labelId="Job-Label"
                   id="JobCode"
@@ -259,20 +336,34 @@ class Employee extends React.Component {
                   name="JobCode"
                   variant="outlined"
                   value={this.state.jobSelect}
-                  onOpen={(e) => {if(this.state.availableJobs.length === 0) this.setState({ open: true, snackbarMessage: "Jobs Unavailable!", snackbarColor: "red" })}}
-                  onChange={(e) => {this.setState({ jobSelect: e.target.value })}}
+                  onOpen={(e) => {
+                    if (this.state.availableJobs.length === 0)
+                      this.setState({
+                        open: true,
+                        snackbarMessage: "Jobs Unavailable!",
+                        snackbarColor: "red",
+                      });
+                  }}
+                  onChange={(e) => {
+                    this.setState({ jobSelect: e.target.value });
+                  }}
                   required
                   fullWidth
                 >
                   {this.state.availableJobs.map((job) => (
-                      <MenuItem key={job.JobCode} value={job.JobCode}>{ `${job.JobCode} - ${job.Designation} - ${job.Shift}` }</MenuItem>
+                    <MenuItem
+                      key={job.JobCode}
+                      value={job.JobCode}
+                    >{`${job.JobCode} - ${job.Designation} - ${job.Shift}`}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Pincode-Label">
-                    Pincode
-                </InputLabel>
+              <FormControl
+                variant="outlined"
+                fullWidth
+                className={classes.form}
+              >
+                <InputLabel id="Pincode-Label">Pincode</InputLabel>
                 <Select
                   labelId="Pincode-Label"
                   id="Pincode"
@@ -280,13 +371,25 @@ class Employee extends React.Component {
                   name="Pincode"
                   variant="outlined"
                   value={this.state.locationSelect}
-                  onOpen={(e) => {if(this.state.availableLocation.length === 0) this.setState({ open: true, snackbarMessage: "Location Unavailable!", snackbarColor: "red" })}}
-                  onChange={(e) => {this.setState({ locationSelect: e.target.value })}}
+                  onOpen={(e) => {
+                    if (this.state.availableLocation.length === 0)
+                      this.setState({
+                        open: true,
+                        snackbarMessage: "Location Unavailable!",
+                        snackbarColor: "red",
+                      });
+                  }}
+                  onChange={(e) => {
+                    this.setState({ locationSelect: e.target.value });
+                  }}
                   required
                   fullWidth
                 >
                   {this.state.availableLocation.map((pin) => (
-                      <MenuItem key={pin.Pincode} value={pin.Pincode}>{ `${pin.Pincode} - ${pin.Panchayat} - ${pin.District}` }</MenuItem>
+                    <MenuItem
+                      key={pin.Pincode}
+                      value={pin.Pincode}
+                    >{`${pin.Pincode} - ${pin.Panchayat} - ${pin.District}`}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -348,6 +451,25 @@ class Employee extends React.Component {
           </div>
         </Container>
         {this.renderTable()}
+        <Dialog
+          open={this.state.openDialog}
+          keepMounted
+          onClose={this.handleDisagree}
+          aria-labelledby="alert-dialog-slide-title"
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle id="alert-dialog-slide-title">
+            {"Are you sure you want to Mark Resignation for this Employee?"}
+          </DialogTitle>
+          <DialogActions>
+            <Button onClick={this.handleDisagree} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.handleAgree} color="secondary">
+              Mark Resign
+            </Button>
+          </DialogActions>
+        </Dialog>
       </React.Fragment>
     );
   }
