@@ -19,6 +19,7 @@ import ManageSanitationSystems from "./pages/ManageSanitationSystems";
 import Families from "./pages/Families";
 import Emergency from "./pages/Emergency";
 import Expenditure from "./pages/Expenditure";
+import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
 
 export const HomeRoute = "/";
@@ -38,6 +39,7 @@ export const ManageSanitationSystemsRoute = "/managesanitationsystems/";
 export const FamiliesRoute = "/families/";
 export const EmergencyRoute = "/emergency/";
 export const ExpenditureRoute = "/expenditure/";
+export const AnalyticsRoute = "/analytics/";
 export const LoginRoute = "/login";
 
 class Routing extends React.Component {
@@ -61,6 +63,7 @@ class Routing extends React.Component {
         <Route path={FamiliesRoute} component={Families} />
         <Route path={ExpenditureRoute} component={Expenditure} />
         <Route path={EmergencyRoute} component={Emergency} />
+        <Route path={AnalyticsRoute} component={Analytics} />
         <Route path={LoginRoute} component={Login} />
       </React.Fragment>
     );

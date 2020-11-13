@@ -63,6 +63,14 @@ export default function Header() {
               <Link
                 variant="button"
                 color="textPrimary"
+                href="/analytics"
+                className={classes.link}
+              >
+                Analytics
+              </Link>
+              <Link
+                variant="button"
+                color="textPrimary"
                 href="/emergency"
                 className={classes.link}
               >
@@ -118,6 +126,14 @@ export default function Header() {
                 className={classes.link}
               >
                 Abstract
+              </Link>
+              <Link
+                variant="button"
+                color="textPrimary"
+                href="/analytics"
+                className={classes.link}
+              >
+                Analytics
               </Link>
               <Link
                 variant="button"

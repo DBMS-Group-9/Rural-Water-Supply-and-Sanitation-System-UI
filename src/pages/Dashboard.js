@@ -127,7 +127,7 @@ class Dashboard extends React.Component {
         imageText: "Image Text",
         ref: "/Expenditure",
       },
-      WaterUsage: {
+      WaterUsages: {
         title: "Water Usage",
         subtitle: "Record the Water Usage of a Water Source",
         image: require("./../static/HomeCover.jpg"),

@@ -97,11 +97,11 @@ class WaterSources extends React.Component {
     if(snackbarDeny) {
       this.setState({ rows: newrows.resdata,
         budget: newrows.balance, })
-      return;
       if(this.state.rows.length === 0) {
         let self = this;
         setTimeout(function(){ self.setState({ open: false });self.setState({ open: true, snackbarMessage: "No More Projects Planned!", snackbarColor: "red"  }); }, 3000);
       }
+      return;      
     }
     if(newrows.errorStatus) {
       this.setState({
