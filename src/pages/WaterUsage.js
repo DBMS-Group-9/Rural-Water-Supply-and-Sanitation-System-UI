@@ -13,37 +13,41 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from '@material-ui/core/FormControl';
+import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import DateFnsUtils from "@date-io/date-fns";
+import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
 async function fetchDB() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/waterusages/getallwaterusages`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
+  await axios
+    .get(`http://localhost:3001/api/waterusages/getallwaterusages`)
+    .then((res) => {
+      resdata = res.data.result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return resdata;
 }
 
 async function fetchWSID() {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`)
-      .then(res => {
-        resdata = res.data.result;
-      })
-      .catch(err => {
-        console.log(err);
-      });
+  await axios
+    .get(`http://localhost:3001/api/watersources/getallwatersources`)
+    .then((res) => {
+      resdata = res.data.result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   return resdata;
 }
 
@@ -75,13 +79,14 @@ class WaterUsage extends React.Component {
     rows: [],
     showWaterUsage: false,
     showWaterUsageText: "Show Water Usages",
-    snackbarMessage: '',
-    snackbarColor: '',
-    wsidSelect: '',
-    monthSelect: '',
-    yearSelect: '',
+    snackbarMessage: "",
+    snackbarColor: "",
+    wsidSelect: "",
+    monthSelect: "",
+    yearSelect: "",
     availableWSID: [],
     open: false,
+    minDate: null,
   };
 
   async componentDidMount() {
@@ -94,15 +99,35 @@ class WaterUsage extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/waterusages/addwaterusage`, { WSID: e.target.WSID.value, Month: e.target.Month.value, Year: e.target.Year.value, Usages: e.target.Usages.value })
+    axios
+      .post(`http://localhost:3001/api/waterusages/addwaterusage`, {
+        WSID: e.target.WSID.value,
+        Month: e.target.Month.value,
+        Year: e.target.Year.value,
+        Usages: e.target.Usages.value,
+      })
       .then(async (res) => {
         let newrows = await fetchDB();
-        this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", wsidSelect: '', monthSelect: '', yearSelect: '' });
+        this.setState({
+          ...this.state,
+          rows: newrows,
+          snackbarMessage: res.data.message,
+          open: true,
+          snackbarColor: "green",
+          wsidSelect: "",
+          monthSelect: "",
+          yearSelect: "",
+        });
         ev.target.reset();
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
-        this.setState({ ...this.state, open: true, snackbarMessage: err.response.data.message, snackbarColor: "red" });
+        this.setState({
+          ...this.state,
+          open: true,
+          snackbarMessage: err.response.data.message,
+          snackbarColor: "red",
+        });
       });
   };
 
@@ -179,7 +204,9 @@ class WaterUsage extends React.Component {
                 </IconButton>
               </React.Fragment>
             }
-            message={<span id="client-snackbar">{this.state.snackbarMessage}</span>}
+            message={
+              <span id="client-snackbar">{this.state.snackbarMessage}</span>
+            }
           />
         </Snackbar>
         <Container component="main" maxWidth="xs">
@@ -188,10 +215,12 @@ class WaterUsage extends React.Component {
               Water Usages
             </Typography>
             <form className={classes.form} onSubmit={this.handleSubmit}>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="WSID-Label">
-                  WSID
-                </InputLabel>
+              <FormControl
+                variant="outlined"
+                fullWidth
+                className={classes.form}
+              >
+                <InputLabel id="WSID-Label">WSID</InputLabel>
                 <Select
                   labelId="WSID-Label"
                   id="WSID"
@@ -199,74 +228,62 @@ class WaterUsage extends React.Component {
                   name="WSID"
                   variant="outlined"
                   value={this.state.wsidSelect}
-                  onOpen={(e) => {if(this.state.availableWSID.length === 0) this.setState({ open: true, snackbarMessage: "WaterSources Unavailable!", snackbarColor: "red" })}}
-                  onChange={(e) => {this.setState({ wsidSelect: e.target.value })}}
+                  onOpen={(e) => {
+                    if (this.state.availableWSID.length === 0)
+                      this.setState({
+                        open: true,
+                        snackbarMessage: "WaterSources Unavailable!",
+                        snackbarColor: "red",
+                      });
+                  }}
+                  onChange={(e) => {
+                    this.setState({ wsidSelect: e.target.value });
+                    axios
+                      .post(
+                        `http://localhost:3001/api/waterusages/getwaterusagemindate`,
+                        { WSID: e.target.value }
+                      )
+                      .then(async (res) => {
+                        this.setState({ minDate: res.data.result });
+                      })
+                      .catch((err) => {
+                        console.log(err);
+                        this.setState({
+                          open: true,
+                          snackbarMessage: err.response.data.message,
+                          snackbarColor: "red",
+                        });
+                      });
+                  }}
                   required
                   fullWidth
                 >
                   {this.state.availableWSID.map((ws) => (
-                      <MenuItem key={ws.WSID} value={ws.WSID}>{ `${ws.WSID} - ${ws.WCapacity} L - ${ws.Pincode}` }</MenuItem>
+                    <MenuItem
+                      key={ws.WSID}
+                      value={ws.WSID}
+                    >{`${ws.WSID} - ${ws.WCapacity} L - ${ws.Pincode}`}</MenuItem>
                   ))}
                 </Select>
-              </FormControl>  
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Month-Label">
-                  Month
-                </InputLabel>
-                <Select
-                  labelId="Month-Label"
-                  id="Month"
-                  label="Month"
-                  name="Month"
-                  variant="outlined"
-                  value={this.state.monthSelect}
-                  onChange={(e) => {this.setState({ monthSelect: e.target.value })}}
+              </FormControl>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <DatePicker
+                  style={{ marginTop: 16, marginBottom: 8 }}
+                  views={["year", "month"]}
+                  label="Month and Year"
+                  disabled={!this.state.minDate}
+                  onChange={(e) => {
+                    this.setState({
+                      yearSelect: e.getFullYear(),
+                      monthSelect: e.getMonth(),
+                    });
+                  }}
+                  minDate={this.state.minDate}
                   required
                   fullWidth
-                >
-                  <MenuItem value={"January"}>January</MenuItem>
-                  <MenuItem value={"February"}>February</MenuItem>
-                  <MenuItem value={"March"}>March</MenuItem>
-                  <MenuItem value={"April"}>April</MenuItem>
-                  <MenuItem value={"May"}>May</MenuItem>
-                  <MenuItem value={"June"}>June</MenuItem>
-                  <MenuItem value={"July"}>July</MenuItem>
-                  <MenuItem value={"August"}>August</MenuItem>
-                  <MenuItem value={"September"}>September</MenuItem>
-                  <MenuItem value={"October"}>October</MenuItem>
-                  <MenuItem value={"November"}>November</MenuItem>
-                  <MenuItem value={"December"}>December</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl variant="outlined" fullWidth className={classes.form}>
-                <InputLabel id="Year-Label">
-                  Year
-                </InputLabel>
-                <Select
-                  labelId="Year-Label"
-                  id="Year"
-                  label="Year"
-                  name="Year"
-                  variant="outlined"
-                  value={this.state.yearSelect}
-                  onChange={(e) => {this.setState({ yearSelect: e.target.value })}}
-                  required
-                  fullWidth
-                >
-                  <MenuItem value={2019}>2019</MenuItem>
-                  <MenuItem value={2020}>2020</MenuItem>
-                  <MenuItem value={2021}>2021</MenuItem>
-                  <MenuItem value={2022}>2022</MenuItem>
-                  <MenuItem value={2023}>2023</MenuItem>
-                  <MenuItem value={2024}>2024</MenuItem>
-                  <MenuItem value={2025}>2025</MenuItem>
-                  <MenuItem value={2026}>2026</MenuItem>
-                  <MenuItem value={2027}>2027</MenuItem>
-                  <MenuItem value={2028}>2028</MenuItem>
-                  <MenuItem value={2029}>2029</MenuItem>
-                  <MenuItem value={2030}>2030</MenuItem>
-                </Select>
-              </FormControl>
+                  inputVariant="outlined"
+                />
+              </MuiPickersUtilsProvider>
               <TextField
                 variant="outlined"
                 margin="normal"
