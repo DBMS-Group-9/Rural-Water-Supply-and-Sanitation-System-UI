@@ -11,6 +11,7 @@ import Footer from "./components/Footer";
 
 const history = createBrowserHistory();
 
+class App extends Component {
   render() {
     return (
       <React.Fragment>
