@@ -55,30 +55,6 @@ export default function Header() {
               <Link
                 variant="button"
                 color="textPrimary"
-                href="/abstract"
-                className={classes.link}
-              >
-                Abstract
-              </Link>
-              <Link
-                variant="button"
-                color="textPrimary"
-                href="/analytics"
-                className={classes.link}
-              >
-                Analytics
-              </Link>
-              <Link
-                variant="button"
-                color="textPrimary"
-                href="/emergency"
-                className={classes.link}
-              >
-                Emergency
-              </Link>
-              <Link
-                variant="button"
-                color="textPrimary"
                 href="/login"
                 className={classes.link}
               >

@@ -23,9 +23,9 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/families/getallfamilies`)
+  await axios.get(`http://localhost:3001/api/families/getallfamilies`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
       })
@@ -78,12 +78,45 @@ class Families extends React.Component {
     locationSelect: '',
     snackbarColor: '',
     snackbarMessage: '',
+    Token: null,
     availableLocation: [],
     open: false,
+    val : {
+      Persons: "",
+      FHead: "",
+      FContact: ""
+    }
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Admin") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Admin First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
     let locations = await fetchLocations();
     this.setState({ rows: newrows, availableLocation: locations });
   }
@@ -91,10 +124,16 @@ class Families extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    for(let txt of Object.values(this.state.val)) {
+      if(txt.length > 0) {
+        this.setState({ open: true, snackbarMessage: "Invalid Values!", snackbarColor: "red" });
+        return;
+      }
+    }
     let ev = e;
-    axios.post(`http://localhost:3001/api/families/addfamily`, { Persons: e.target.Persons.value, FHead: e.target.FHead.value, FContact: e.target.FContact.value, Pincode: e.target.Pincode.value })
+    axios.post(`http://localhost:3001/api/families/addfamily`, { Persons: e.target.Persons.value, FHead: e.target.FHead.value, FContact: e.target.FContact.value, Pincode: e.target.Pincode.value }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
         ev.target.reset();
       })
@@ -197,6 +236,16 @@ class Families extends React.Component {
                 type="number"
                 id="Persons"
                 autoFocus
+                error={(this.state.val.Persons.length === 0)? false : true}
+                helperText={this.state.val.Person}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[0-9]+/;
+                  if (!format.test(e.target.value)) val.Persons = "Designation cannot contain special symbols";            
+                  else val.Persons = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Persons.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -207,6 +256,16 @@ class Families extends React.Component {
                 label="Family Head"
                 type="text"
                 id="FHead"
+                error={(this.state.val.FHead.length === 0)? false : true}
+                helperText={this.state.val.FHead}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.FHead = "Name cannot contain special symbols";            
+                  else val.FHead = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.FHead.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -217,6 +276,18 @@ class Families extends React.Component {
                 label="Contact"
                 type="number"
                 id="FContact"
+                error={(this.state.val.FContact.length === 0)? false : true}
+                helperText={this.state.val.FContact}
+                onChange={(e) => {
+                  var format = /[0-9]+/;
+                  var cformat = /[0-5]+/;
+                  var val = this.state.val
+                  if (!format.test(e.target.value) || e.target.value.length !== 10 ) val.FContact="Contact Number must have 10 numbers";  
+                  else if (e.target.value.toString()[0].match(cformat)) val.FContact="Please enter a valid contact number";  
+                  else val.FContact = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.FContact.length === 0)? false : true}
               />              
               <FormControl variant="outlined" fullWidth className={classes.form}>
                 <InputLabel id="Location-Label">

@@ -23,9 +23,9 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/jobs/getalljobs`)
+  await axios.get(`http://localhost:3001/api/jobs/getalljobs`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
       })
@@ -65,22 +65,59 @@ class Jobs extends React.Component {
     showJobsText: "Show Jobs",
     snackbarMessage: "",
     snackbarColor: "",
+    Token: null,
     shiftSelect: '',
     open: false,
+    val: {
+      Designation:""
+    }
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Admin") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Admin First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
     this.setState({ rows: newrows });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    for(let txt of Object.values(this.state.val)) {
+      if(txt.length > 0) {
+        this.setState({ open: true, snackbarMessage: "Invalid Values!", snackbarColor: "red" });
+        return;
+      }
+    }
     let ev = e;
-    axios.post(`http://localhost:3001/api/jobs/addjob`, { Designation: e.target.Designation.value, Shift: e.target.Shift.value })
+    axios.post(`http://localhost:3001/api/jobs/addjob`, { Designation: e.target.Designation.value, Shift: e.target.Shift.value }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", shiftSelect: '' });
         ev.target.reset();
       })
@@ -180,6 +217,16 @@ class Jobs extends React.Component {
                 type="text"
                 id="Designation"
                 autoFocus
+                error={(this.state.val.Designation.length === 0)? false : true}
+                helperText={this.state.val.Designation}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.Designation = "Designation cannot contain special symbols";            
+                  else val.Designation = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Designation.length === 0)? false : true}
               />
               <FormControl variant="outlined" fullWidth className={classes.form}>
                 <InputLabel id="Shift-Label">
@@ -195,7 +242,8 @@ class Jobs extends React.Component {
                   onChange={(e) => {this.setState({ shiftSelect: e.target.value })}}
                   required
                   fullWidth
-                >
+                  
+                  >
                   <MenuItem value={"Full-Time"}>Full Time</MenuItem>
                   <MenuItem value={"Morning"}>Morning Shift</MenuItem>
                   <MenuItem value={"Evening"}>Evening Shift</MenuItem>

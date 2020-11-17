@@ -4,7 +4,6 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import Markdown from "./../components/Markdown";
-import AbstractPost from "./../static/Abstract.md";
 
 import Header from "../components/Header";
 
@@ -18,50 +17,36 @@ const useStyles = makeStyles((theme) => ({
 export default function Abstract() {
   const classes = useStyles();
   const tempMD = `
-  ## Group Members
+  **Bank Name**: HDFC BANK
   
-  | **Roll Number** | **Name** |
-  | --- | --- |
-  | CB.EN.U4CSE18266 | Venkatasubramanian N |
-  | CB.EN.U4CSE18212 | Ashwin V |
-  | CB.EN.U4CSE18227 | Gubbala Sri Ram  |
-  | CB.EN.U4CSE18234 | K. Chandra Mohan Reddy |
+  **ACCOUNT NUMBER**: 01234567138191
   
-  ## Objective
+  **IFSC CODE**: HDFC0000004
   
-  To improve the quality of lives of people living in rural areas by building a composite and decentralised rural water supply and sanitation system. 
+
+  **BRANCH NAME**: CHENNAI - ITC CENTRE - ANNA SALAI
   
-  ## Software
+  **MICR CODE**: 600240002
   
-  - Database: Oracle SQL
-  - UI design: ReactJS
+  **CITY**: CHENNAI
   
-  ## Introduction
+  **STATE**: TAMILNADU
   
-  The Failure of Rural Communities to understand the need of water resources as a social good and their inability to adhere to hygienic sanitation practices has led to the improper usage of water resources. There is also an acute need for a proper and easy to use health and sanitation systems in rural areas. This makes the aim of the project to focus on four different components.
+  **ADDRESS**: 759, ITC CENTREANNA SALAI, OPP T.V.S.CHENNAI, TAMILNADU 600002
   
-  1. Improved Water Supply Facilities. 
-  2. Hygienic Sanitation System. 
-  3. Community Mobilisation and Education. 
-  4. Advanced Monitoring, Evaluating and Supporting System. 
-  
-  ## Abstract
-  
-  Starting with the first component, water for the village is considered as a single resource for the village and is distributed equally among the villagers in appropriate time intervals. We also have a reserve to be used in case of emergency. The second component targets on the sanitary investments like constructing safe wastewater and excreta disposal systems, public installations on a pilot basis, small sewer collectors, community septic tanks, as well as lagoon-type wastewater treatment. The third component focuses on educating the villagers by connecting with them in a way they understand using community mobilisation. The last and important component focuses on using the latest and advanced technology to monitor the whole system in real time and evaluate the efficiency of both the villagers and the system in frequent time intervals. This whole data is stored in a relational database and can be used anytime to make sure of the success of this project mainly in areas like funding.
-  
-  Ensures Rehabilitated, Hygenic water supply and sanitation system. `;
+  **PHONE NUMBER**: 9723872832`;
 
 
   return (
     <Grid item xs={12} md={8} justify="center" style={{ maxWidth: '100%', margin: 20 }}>
       <Header />
       <Typography variant="h6" gutterBottom>
-        Abstract
+        How to Donate
       </Typography>
       <Divider />
       <Markdown
         className={classes.markdown}
-        key={AbstractPost.substring(0, 40)}
+        key={tempMD.substring(0, 40)}
       >
         {tempMD}
       </Markdown>

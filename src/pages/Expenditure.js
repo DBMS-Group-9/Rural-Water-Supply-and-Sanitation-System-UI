@@ -23,11 +23,11 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   let message = '';
   let errorStatus = false;
-  await axios.get(`http://localhost:3001/api/expenditures/getallexpenditures`)
+  await axios.get(`http://localhost:3001/api/expenditures/getallexpenditures`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
         message = res.data.message;
@@ -67,11 +67,39 @@ class Expenditure extends React.Component {
   state = {
     rows: [],
     snackbarColor: '',
+    Token: null,
     snackbarMessage: ''
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Accountant") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Accountant First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
     if(newrows.errorStatus) {
       this.setState({
         ...this.state,

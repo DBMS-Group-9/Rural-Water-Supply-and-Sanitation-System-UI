@@ -24,12 +24,12 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   let message = '';
   let errorStatus = false;
   let balance = 0;
-  await axios.get(`http://localhost:3001/api/watersources/getallplannedwatersources`)
+  await axios.get(`http://localhost:3001/api/watersources/getallplannedwatersources`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
         message = res.data.message;
@@ -38,7 +38,7 @@ async function fetchDB() {
         message = err.response.data.message;
         errorStatus = true;
       });
-  await axios.get(`http://localhost:3001/api/utility/getbalance`)
+  await axios.get(`http://localhost:3001/api/utility/getbalance`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         balance = res.data.balance;
       })
@@ -79,6 +79,7 @@ class WaterSources extends React.Component {
     },
     snackbarColor: '',
     snackbarMessage: '',
+    Token: null,
     openDialog: false,
     budget: 0,
     Token: null,
@@ -86,13 +87,38 @@ class WaterSources extends React.Component {
   };
 
   async componentDidMount() {
-    this.createdFunction();
-    let token = sessionStorage.getItem('Token');
-    this.setState({ Token: token })
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Accountant") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Accountant First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    this.createdFunction();    
   }
 
   async createdFunction(snackbarDeny) {
-    let newrows = await fetchDB();
+    let newrows = await fetchDB(this.state.Token);
     console.log(newrows);
     if(snackbarDeny) {
       this.setState({ rows: newrows.resdata,

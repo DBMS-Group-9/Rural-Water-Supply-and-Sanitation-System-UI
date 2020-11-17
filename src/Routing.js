@@ -4,6 +4,7 @@ import { withRouter } from "react-router-dom";
 
 import Home from "./pages/Homepage";
 import Abstract from "./pages/Abstract";
+import HowToDonate from "./pages/HowToDonate";
 import Dashboard from "./pages/Dashboard";
 import Donate from "./pages/Donate";
 import Jobs from "./pages/Jobs";
@@ -24,6 +25,7 @@ import Login from "./pages/Login";
 
 export const HomeRoute = "/";
 export const AbstractRoute = "/abstract/";
+export const HowToDonateRoute = "/howtodonate/";
 export const DashboardRoute = "/dashboard/";
 export const DonateRoute = "/donate/";
 export const JobsRoute = "/jobs/";
@@ -48,6 +50,7 @@ class Routing extends React.Component {
       <React.Fragment>
         <Route path={HomeRoute} exact component={Home} />
         <Route path={AbstractRoute} component={Abstract} />
+        <Route path={HowToDonateRoute} component={HowToDonate} />
         <Route path={DashboardRoute} component={Dashboard} />
         <Route path={DonateRoute} component={Donate} />
         <Route path={JobsRoute} component={Jobs} />

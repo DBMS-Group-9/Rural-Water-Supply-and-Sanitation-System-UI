@@ -74,21 +74,60 @@ class Location extends React.Component {
     showLocationText: "Show Location",
     loading: false,
     snackbarMessage: "",
+    Token: null,
     snackbarColor: "",
+    val: {
+      Pincode: "",
+      District: "",
+      Panchayat: ""
+    },
     open: false,
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Admin") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Admin First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB();    
     this.setState({ rows: newrows });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    for(let txt of Object.values(this.state.val)) {
+      if(txt.length > 0) {
+        this.setState({ open: true, snackbarMessage: "Invalid Values!", snackbarColor: "red" });
+        return;
+      }
+    }
     let ev = e;
     this.setState({ loading: true });
-    axios.post(`http://localhost:3001/api/location/addlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value })
+    axios.post(`http://localhost:3001/api/location/addlocation`, { Pincode: e.target.Pincode.value, Panchayat: e.target.Panchayat.value, District: e.target.District.value }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
         let newrows = await fetchDB();
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
@@ -190,6 +229,16 @@ class Location extends React.Component {
                 label="Pincode"
                 name="Pincode"
                 type="number"
+                error={(this.state.val.Pincode.length === 0)? false : true}
+                helperText={this.state.val.Pincode}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[0-9]+/;
+                  if (!format.test(e.target.value) || e.target.value.length !== 6) val.Pincode = "Pincode must be of 6 digits and can't contain a character";            
+                  else val.Pincode = "";
+                  this.setState({ val });
+                }}   
+                error={(this.state.val.Pincode.length === 0)? false : true}
                 autoFocus
               />
               <TextField
@@ -201,6 +250,15 @@ class Location extends React.Component {
                 label="Panchayat"
                 type="text"
                 id="Panchayat"
+                helperText={this.state.val.Panchayat}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.Panchayat = "Panchayat name cannot contain special symbols";            
+                  else val.Panchayat = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Panchayat.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -211,6 +269,16 @@ class Location extends React.Component {
                 label="District"
                 type="text"
                 id="District"
+                error={(this.state.val.District.length === 0)? false : true}
+                helperText={this.state.val.District}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.District = "District name cannot contain special symbols";            
+                  else val.District = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.District.length === 0)? false : true}
               />
               <div className={classes.wrapper}>
                 <Button

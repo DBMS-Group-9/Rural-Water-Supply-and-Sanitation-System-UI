@@ -33,8 +33,9 @@ export default function Abstract() {
   
   ## Software
   
-  - Database: Oracle SQL
-  - UI design: ReactJS
+  - Database: MySQL
+  - UI design: ReactJs
+  - Backend: NodeJs
   
   ## Introduction
   
@@ -49,8 +50,7 @@ export default function Abstract() {
   
   Starting with the first component, water for the village is considered as a single resource for the village and is distributed equally among the villagers in appropriate time intervals. We also have a reserve to be used in case of emergency. The second component targets on the sanitary investments like constructing safe wastewater and excreta disposal systems, public installations on a pilot basis, small sewer collectors, community septic tanks, as well as lagoon-type wastewater treatment. The third component focuses on educating the villagers by connecting with them in a way they understand using community mobilisation. The last and important component focuses on using the latest and advanced technology to monitor the whole system in real time and evaluate the efficiency of both the villagers and the system in frequent time intervals. This whole data is stored in a relational database and can be used anytime to make sure of the success of this project mainly in areas like funding.
   
-  Ensures Rehabilitated, Hygenic water supply and sanitation system. `;
-
+  Eventually, this project will ensure that the villagers are benefitted by the implementation of a proper water resource management system along with a hygienic sanitation system and are educated regarding the usage of the same. The monitoring system built will be used to keep track of the efficiency of the system and the project as a whole. `;
 
   return (
     <Grid item xs={12} md={8} justify="center" style={{ maxWidth: '100%', margin: 20 }}>
@@ -61,7 +61,7 @@ export default function Abstract() {
       <Divider />
       <Markdown
         className={classes.markdown}
-        key={AbstractPost.substring(0, 40)}
+        key={tempMD.substring(0, 40)}
       >
         {tempMD}
       </Markdown>

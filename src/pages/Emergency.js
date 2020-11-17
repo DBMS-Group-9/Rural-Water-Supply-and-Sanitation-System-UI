@@ -93,6 +93,7 @@ class Employee extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    
     axios.post(`http://localhost:3001/api/utility/emergencydetails`, { Designation: e.target.Designation.value, Shift: e.target.Shift.value, Pincode: e.target.Pincode.value })
       .then(async (res) => {
         let newrows = res.data.result;
@@ -207,7 +208,7 @@ class Employee extends React.Component {
                   fullWidth
                 >
                   {this.state.availableJobs.map((job) => (
-                      <MenuItem key={job.JobCode} value={job.Designation}>{ job.Designation }</MenuItem>
+                      <MenuItem key={job.Designation} value={job.Designation}>{ job.Designation }</MenuItem>
                   ))}
                 </Select>
               </FormControl>

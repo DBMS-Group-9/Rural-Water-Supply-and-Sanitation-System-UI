@@ -24,11 +24,11 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   let message = '';
   let errorStatus = false;
-  await axios.get(`http://localhost:3001/api/watersources/getallapprovedwatersources`)
+  await axios.get(`http://localhost:3001/api/watersources/getallapprovedwatersources`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
         message = res.data.message;
@@ -81,13 +81,38 @@ class WaterSources extends React.Component {
   };
 
   async componentDidMount() {
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Project Manager") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Project Manager First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
     this.createdFunction();
-    let token = sessionStorage.getItem('Token');
-    this.setState({ Token: token })
   }
 
   async createdFunction(snackbarDeny) {
-    let newrows = await fetchDB();
+    let newrows = await fetchDB(this.state.Token);
     console.log(newrows);
     if(snackbarDeny) {
       this.setState({ rows: newrows.resdata })
@@ -275,7 +300,7 @@ class WaterSources extends React.Component {
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle id="alert-dialog-slide-title">
-            {`Are you sure you want Change the Status of this Project ${this.state.approveSelect.WSID}-${this.state.approveSelect.WCapacity}-${this.state.approveSelect.Pincode} to ${this.state.approveSelect.newWStatus} ?`}
+            {`Are you sure you want Change the Status of this Project ID:${this.state.approveSelect.WSID} - Capacity: ${this.state.approveSelect.WCapacity} L - Pincode: ${this.state.approveSelect.Pincode} to ${this.state.approveSelect.newWStatus} ?`}
           </DialogTitle>
           <DialogActions>
             <Button onClick={this.handleDisagree} color="secondary">

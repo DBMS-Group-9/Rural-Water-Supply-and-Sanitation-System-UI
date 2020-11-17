@@ -23,9 +23,9 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`)
+  await axios.get(`http://localhost:3001/api/watersources/getallwatersources`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
       })
@@ -79,11 +79,39 @@ class WaterSources extends React.Component {
     snackbarColor: '',
     snackbarMessage: '',
     availableLocation: [],
+    Token: null,
     open: false,
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Planning Engineer") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Planning Engineer First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
     let locations = await fetchLocations();
     this.setState({ rows: newrows, availableLocation: locations });
   }
@@ -92,9 +120,9 @@ class WaterSources extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
-    axios.post(`http://localhost:3001/api/watersources/addwatersource`, { WStatus: 'Planned', WEstimation: e.target.WEstimation.value, WCapacity: e.target.WCapacity.value, Pincode: e.target.Pincode.value })
+    axios.post(`http://localhost:3001/api/watersources/addwatersource`, { WStatus: 'Planned', WEstimation: e.target.WEstimation.value, WCapacity: e.target.WCapacity.value, Pincode: e.target.Pincode.value }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green", locationSelect: '' });
         ev.target.reset();
       })

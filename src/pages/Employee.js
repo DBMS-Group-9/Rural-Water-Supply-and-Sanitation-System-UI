@@ -28,10 +28,10 @@ import { withStyles } from "@material-ui/core/styles";
 import Header from "../components/Header";
 import Resign from "../static/resign.svg";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   await axios
-    .get(`http://localhost:3001/api/employees/getallemployees`)
+    .get(`http://localhost:3001/api/employees/getallemployees`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
       resdata = res.data.result;
     })
@@ -41,10 +41,10 @@ async function fetchDB() {
   return resdata;
 }
 
-async function fetchJobs() {
+async function fetchJobs(token) {
   let resdata = [];
   await axios
-    .get(`http://localhost:3001/api/jobs/getalljobs`)
+    .get(`http://localhost:3001/api/jobs/getalljobs`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
       resdata = res.data.result;
     })
@@ -99,15 +99,50 @@ class Employee extends React.Component {
     locationSelect: "",
     deleteSelect: null,
     snackbarColor: "",
+    Token: null,
     snackbarMessage: "",
     openDialog: false,
     availableJobs: [],
     availableLocation: [],
+    val : {
+      FName:"",
+        LName: "",
+        EContact: "",
+        Username: "",
+        Password: "",
+    }
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
-    let jobs = await fetchJobs();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Admin") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Admin First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
+    let jobs = await fetchJobs(this.state.Token);
     let locations = await fetchLocations();
     this.setState({
       rows: newrows,
@@ -119,6 +154,12 @@ class Employee extends React.Component {
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    for(let txt of Object.values(this.state.val)) {
+      if(txt.length > 0) {
+        this.setState({ open: true, snackbarMessage: "Invalid Values!", snackbarColor: "red" });
+        return;
+      }
+    }
     let ev = e;
     axios
       .post(`http://localhost:3001/api/employees/addemployee`, {
@@ -129,9 +170,9 @@ class Employee extends React.Component {
         Pincode: e.target.Pincode.value,
         Username: e.target.Username.value,
         Password: e.target.Password.value,
-      })
+      }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({
           ...this.state,
           rows: newrows,
@@ -173,9 +214,9 @@ class Employee extends React.Component {
     axios
       .post(`http://localhost:3001/api/employees/markresigned`, {
         EmpID: this.state.deleteSelect.EmpID
-      })
+      }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({
           ...this.state,
           rows: newrows,
@@ -302,6 +343,16 @@ class Employee extends React.Component {
                 type="text"
                 id="FName"
                 autoFocus
+                error={(this.state.val.FName.length === 0)? false : true}
+                helperText={this.state.val.FName}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.FName = "Name cannot contain special symbols";            
+                  else val.FName = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.FName.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -312,6 +363,16 @@ class Employee extends React.Component {
                 label="Last Name"
                 type="text"
                 id="LName"
+                error={(this.state.val.LName.length === 0)? false : true}
+                helperText={this.state.val.LName}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?0-9]+/;
+                  if (format.test(e.target.value)) val.LName = "Name cannot contain special symbols";            
+                  else val.LName = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.LName.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -322,6 +383,18 @@ class Employee extends React.Component {
                 label="Conatct"
                 type="number"
                 id="EContact"
+                error={(this.state.val.EContact.length === 0)? false : true}
+                helperText={this.state.val.EContact}
+                onChange={(e) => {
+                  var format = /[0-9]+/;
+                  var cformat = /[0-5]+/;
+                  var val = this.state.val
+                  if (!format.test(e.target.value) || e.target.value.length !== 10) val.EContact="Contact Number must have 10 numbers";  
+                  else if (e.target.value.toString()[0].match(cformat)) val.EContact="Please enter a valid contact number";
+                  else val.EContact = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.EContact.length === 0)? false : true}
               />
               <FormControl
                 variant="outlined"
@@ -402,6 +475,16 @@ class Employee extends React.Component {
                 label="Usename"
                 type="text"
                 id="Username"
+                error={(this.state.val.Username.length === 0)? false : true}
+                helperText={this.state.val.Username}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!#$%^&*()+\-=\[\]{};':"\\|,<>\/?]+/;
+                  if (format.test(e.target.value)) val.Username = "Username format invalid";            
+                  else val.Username = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Username.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -412,6 +495,16 @@ class Employee extends React.Component {
                 label="Password"
                 type="text"
                 id="Password"
+                error={(this.state.val.Password.length === 0)? false : true}
+                helperText={this.state.val.Password}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!#$%^&*()_+\-=\[\]{};':"\\|,<>\/?]+/;
+                  if (format.test(e.target.value)) val.Password = "Inalid Password Format";            
+                  else val.Password = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Password.length === 0)? false : true}
               />
               <Button
                 type="submit"

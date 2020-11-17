@@ -42,8 +42,25 @@ class Login extends React.Component {
     open: false,
   };
 
+  async componentDidMount() {
+    let Token = sessionStorage.getItem("Token");
+    if (Token) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Logout First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
+   
     axios.post(`http://localhost:3001/api/auth/login`, { Username: e.target.Username.value, Password: e.target.Password.value })
       .then(async (res) => {
         console.log(res.data);

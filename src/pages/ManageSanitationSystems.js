@@ -24,11 +24,11 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   let message = '';
   let errorStatus = false;
-  await axios.get(`http://localhost:3001/api/sanitationsystems/getallapprovedsanitationsystems`)
+  await axios.get(`http://localhost:3001/api/sanitationsystems/getallapprovedsanitationsystems`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
         message = res.data.message;
@@ -81,13 +81,38 @@ class sanitationsystems extends React.Component {
   };
 
   async componentDidMount() {
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Project Manager") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Project Manager First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
     this.createdFunction();
-    let token = sessionStorage.getItem('Token');
-    this.setState({ Token: token })
   }
 
   async createdFunction(snackbarDeny) {
-    let newrows = await fetchDB();
+    let newrows = await fetchDB(this.state.Token);
     console.log(newrows);
     if(snackbarDeny) {
       this.setState({ rows: newrows.resdata })
@@ -218,8 +243,7 @@ class sanitationsystems extends React.Component {
                     <TableRow>
                       <TableCell>SSID</TableCell>                      
                       <TableCell>Status</TableCell>
-                      <TableCell>Estimation</TableCell>
-                      <TableCell>Capacity</TableCell>                      
+                      <TableCell>Estimation</TableCell>                     
                       <TableCell>Pincode</TableCell>
                       <TableCell>Status Update</TableCell>
                       <TableCell>Actions</TableCell>
@@ -231,7 +255,6 @@ class sanitationsystems extends React.Component {
                         <TableCell>{row.SSID}</TableCell>
                         <TableCell>{row.SStatus}</TableCell>
                         <TableCell>{row.SEstimation}</TableCell>
-                        <TableCell>{row.SCapacity}</TableCell>
                         <TableCell>{row.Pincode}</TableCell>
                         <TableCell component="th" scope="row">
                         <Select
@@ -275,7 +298,7 @@ class sanitationsystems extends React.Component {
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle id="alert-dialog-slide-title">
-            {`Are you sure you want Change the Status of this Project ${this.state.approveSelect.SSID}-${this.state.approveSelect.SCapacity}-${this.state.approveSelect.Pincode} to ${this.state.approveSelect.newSStatus} ?`}
+            {`Are you sure you want Change the Status of this Project ID: ${this.state.approveSelect.SSID} - Capacity: ${this.state.approveSelect.SCapacity} - Pincode: ${this.state.approveSelect.Pincode} to ${this.state.approveSelect.newSStatus} ?`}
           </DialogTitle>
           <DialogActions>
             <Button onClick={this.handleDisagree} color="secondary">

@@ -18,14 +18,40 @@ class Homepage extends React.Component {
     },
     Abstract: [
       {
-        title: 'Abstact',
+        title: 'Abstract',
         subtitle: 'Abstract of the Project',
         description:
-          'The Failure of Rural Communities to understand the need of water resources as a social good and their inability to adhere to hygienic sanitation practice...',
-        image: require('./../static/HomeCover.jpg'),
+          'We strive to improve the quality of lives of people living in rural areas by building some basic facilities. Find more. . . ',
+        image: require('./../static/abstract.png'),
         imageText: 'Image Text',
-        ref: '/abstract',
-        refText: 'Continue Reading...'
+        ref: '/abstract'
+      },
+      {
+        title: 'Analytics',
+        subtitle: 'Analytics of the Project',
+        description:
+          'Monitoring the system and producing some results in the form of Graphs, Charts and Numbers. . . ',
+        image: require('./../static/analytics.png'),
+        imageText: 'Image Text',
+        ref: '/analytics'
+      },
+      {
+        title: 'Emergency',
+        subtitle: 'Emergency Contacts of Employees',
+        description:
+          'Know Your Employees at Work. In the case of an Emergency we are always here ready to help. . .',
+        image: require('./../static/emergency.jpg'),
+        imageText: 'Image Text',
+        ref: '/emergency'
+      },
+      {
+        title: 'How to Donate',
+        subtitle: 'Donation Procedure for this Project',
+        description:
+          'If You wish to Donate for the cause of enriching the lives of millions in the country, here is what you have to do. . . ',
+        image: require('./../static/howtodonate.jpg'),
+        imageText: 'Image Text',
+        ref: '/howtodonate'
       }
     ]
   }

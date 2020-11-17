@@ -25,10 +25,10 @@ import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
   await axios
-    .get(`http://localhost:3001/api/waterusages/getallwaterusages`)
+    .get(`http://localhost:3001/api/waterusages/getallwaterusages`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
       resdata = res.data.result;
     })
@@ -38,10 +38,10 @@ async function fetchDB() {
   return resdata;
 }
 
-async function fetchWSID() {
+async function fetchWSID(token) {
   let resdata = [];
   await axios
-    .get(`http://localhost:3001/api/watersources/getallwatersources`)
+    .get(`http://localhost:3001/api/watersources/getallwatersources`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
       resdata = res.data.result;
     })
@@ -84,14 +84,42 @@ class WaterUsage extends React.Component {
     wsidSelect: "",
     monthSelect: "",
     yearSelect: "",
+    Token: null,
     availableWSID: [],
     open: false,
     minDate: null,
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
-    let WSIDs = await fetchWSID();
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Operator") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Operator First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
+    let WSIDs = await fetchWSID(Token);
     this.setState({ rows: newrows, availableWSID: WSIDs });
   }
 
@@ -99,15 +127,18 @@ class WaterUsage extends React.Component {
     e.preventDefault();
     e.persist();
     let ev = e;
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
     axios
       .post(`http://localhost:3001/api/waterusages/addwaterusage`, {
         WSID: e.target.WSID.value,
-        Month: e.target.Month.value,
-        Year: e.target.Year.value,
+        Month: monthNames[this.state.monthSelect],
+        Year: this.state.yearSelect,
         Usages: e.target.Usages.value,
-      })
+      }, { headers: { Authorization: "Bearer " + this.state.Token } })
       .then(async (res) => {
-        let newrows = await fetchDB();
+        let newrows = await fetchDB(this.state.Token);
         this.setState({
           ...this.state,
           rows: newrows,
@@ -241,7 +272,7 @@ class WaterUsage extends React.Component {
                     axios
                       .post(
                         `http://localhost:3001/api/waterusages/getwaterusagemindate`,
-                        { WSID: e.target.value }
+                        { WSID: e.target.value }, { headers: { Authorization: "Bearer " + this.state.Token } }
                       )
                       .then(async (res) => {
                         this.setState({ minDate: res.data.result });

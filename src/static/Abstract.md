@@ -1,4 +1,4 @@
-# Rural Water Supply and Sanitation System 
+# Rural Water Supply and Sanitation System
 
 ## Group Members
 

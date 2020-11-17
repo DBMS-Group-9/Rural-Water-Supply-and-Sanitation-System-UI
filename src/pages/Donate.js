@@ -15,13 +15,15 @@ import Snackbar from "@material-ui/core/Snackbar";
 import SnackbarContent from "@material-ui/core/SnackbarContent";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import DateFnsUtils from "@date-io/date-fns";
+import { MuiPickersUtilsProvider, KeyboardDatePicker } from "@material-ui/pickers";
 import { withStyles } from "@material-ui/core/styles";
 
 import Header from "../components/Header";
 
-async function fetchDB() {
+async function fetchDB(token) {
   let resdata = [];
-  await axios.get(`http://localhost:3001/api/donations/getalldonations`)
+  await axios.get(`http://localhost:3001/api/donations/getalldonations`, { headers: { Authorization: "Bearer " + token } })
       .then(res => {
         resdata = res.data.result;
       })
@@ -60,27 +62,71 @@ class Donate extends React.Component {
     showDonors: false,
     showDonorsText: "Show Donors",
     phoneErrorText: "",
+    selectedDate: null,
     phone: false,
     open: false,
+    token: null,
+    val: {
+      TransactionID: "",
+      Amount: "",
+      AccountNumber:"",
+      DContact:""
+    },
   };
 
   async componentDidMount() {
-    let newrows = await fetchDB();
-    this.setState({ rows: newrows });
+    let Token = sessionStorage.getItem("Token");
+    if (!Token || Token.length === 0) {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Please Login First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/");
+      }, 500);
+    }
+    await this.setState({ token: Token });
+    let Designation = sessionStorage.getItem("Designation");
+    if (Designation !== "Accountant") {
+      this.setState({
+        ...this.state,
+        snackbarMessage: "Login as Accountant First!!!",
+        open: true,
+        snackbarColor: "red",
+      });
+      let self = this;
+      setTimeout(function () {
+        self.props.history.push("/Dashboard");
+      }, 500);
+    }
+    let newrows = await fetchDB(Token);
+    var d = new Date().toISOString();
+    this.setState({ rows: newrows, selectedDate: d });
   }
 
   handleSubmit = (e) => {
     e.preventDefault();
     e.persist();
+    for(let txt of Object.values(this.state.val)) {
+      if(txt.length > 0) {
+        this.setState({ open: true, snackbarMessage: "Invalid Values!", snackbarColor: "red" });
+        return;
+      }
+    }
     let ev = e;
-    var d = new Date();
+    var d = new Date(this.state.selectedDate);
     var date =
       +("0" + d.getDate()).slice(-2) +
       "-" +
       ("0" + (d.getMonth() + 1)).slice(-2) +
       "-" +
       d.getFullYear();
-    axios.post(`http://localhost:3001/api/donations/adddonation`, { TransactionID: e.target.TransactionID.value, AccountNumber: e.target.AccountNumber.value, Amount: e.target.Amount.value, DContact: e.target.DContact.value, DDate: date })
+    axios.post(`http://localhost:3001/api/donations/adddonation`, { TransactionID: e.target.TransactionID.value, AccountNumber: e.target.AccountNumber.value, Amount: Number(e.target.Amount.value).toFixed(2), DContact: e.target.DContact.value, DDate: date }, {
+      headers: { Authorization: "Bearer " + this.state.Token }
+    })
       .then(async (res) => {
         let newrows = await fetchDB();
         this.setState({ ...this.state, rows: newrows, snackbarMessage: res.data.message, open: true, snackbarColor: "green" });
@@ -185,6 +231,16 @@ class Donate extends React.Component {
                 name="TransactionID"
                 type="text"
                 autoFocus
+                error={(this.state.val.TransactionID.length === 0)? false : true}
+                helperText={this.state.val.TransactionID}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+                  if (format.test(e.target.value)) val.TransactionID = "TransactionID cannot contain special symbols";            
+                  else val.TransactionID = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.TransactionID.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -195,7 +251,33 @@ class Donate extends React.Component {
                 label="Account Number"
                 type="text"
                 id="AccountNumber"
+                error={(this.state.val.AccountNumber.length === 0)? false : true}
+                helperText={this.state.val.AccountNumber}
+                onChange={(e) => {
+                  let val = this.state.val;
+                  var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+                  if (format.test(e.target.value) || (e.target.value.length > 25)) val.AccountNumber = "Account Number must be a number of length less than 25";            
+                  else val.AccountNumber = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.AccountNumber.length === 0)? false : true}
               />
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <KeyboardDatePicker
+                  autoOk
+                  variant="inline"
+                  inputVariant="outlined"
+                  label="Donation Date"
+                  format="dd/MM/yyyy"
+                  value={this.state.selectedDate}
+                  required
+                  fullWidth
+                  InputAdornmentProps={{ position: "start" }}
+                  style={{ marginTop: 16, marginBottom: 8 }}
+                  onChange={date => {this.setState({selectedDate: date.toISOString()})}}
+                  maxDate={new Date()}
+                />
+              </MuiPickersUtilsProvider>
               <TextField
                 variant="outlined"
                 margin="normal"
@@ -205,6 +287,16 @@ class Donate extends React.Component {
                 label="Amount"
                 type="number"
                 id="Amount"
+                error={(this.state.val.Amount.length === 0)? false : true}
+                helperText={this.state.val.Amount}
+                onChange={(e) => {
+                  var format = /[0-9.]+/;
+                  var val = this.state.val
+                  if (!format.test(e.target.value)) val.Amount="Amount can only be numbers";  
+                  else val.Amount = "";
+                  this.setState({ val });
+                }}
+                error={(this.state.val.Amount.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"
@@ -215,14 +307,18 @@ class Donate extends React.Component {
                 label="Contact"
                 type="number"
                 id="DContact"
-                inputProps={{ maxLength: 10, minLength: 10 }}
-                helperText={this.state.phoneErrorText}
+                error={(this.state.val.DContact.length === 0)? false : true}
+                helperText={this.state.val.DContact}
                 onChange={(e) => {
-                  if (e.target.value.length !== 10)
-                    this.setState({ ...this.state, phone: true, phoneErrorText: "Phone Number must be of 10 digits." });
-                  else this.setState({ ...this.state, phone: false, phoneErrorText: "" });
+                  var format = /[0-9]+/;
+                  var cformat = /[0-5]+/;
+                  var val = this.state.val
+                  if (!format.test(e.target.value) || e.target.value.length !== 10 ) val.DContact="Contact Number must have 10 numbers";  
+                  else if (e.target.value.toString()[0].match(cformat)) val.DContact="Please enter a valid contact number";  
+                  else val.DContact = "";
+                  this.setState({ val });
                 }}
-                error={this.state.phone}
+                error={(this.state.val.DContact.length === 0)? false : true}
               />              
               <Button
                 type="submit"
