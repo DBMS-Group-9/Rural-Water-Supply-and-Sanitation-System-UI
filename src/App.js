@@ -11,19 +11,6 @@ import Footer from "./components/Footer";
 
 const history = createBrowserHistory();
 
-class App extends Component {
-  state = {
-    player: [{ bid: "35" }, { bid: "50" }, { bid: "100" }],
-  };
-
-  bidIncreaseHandler = () => {
-    console.log(this);
-    console.log("Bid Increased!");
-    this.setState({
-      player: [{ bid: "45" }, { bid: "50" }, { bid: "100" }],
-    });
-  };
-
   render() {
     return (
       <React.Fragment>
