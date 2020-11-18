@@ -672,7 +672,7 @@ class Dashboard extends React.Component {
                     Avg Water Usage Per Month
                   </Typography>
                   <Typography variant="h6" component="h2">
-                    {this.state.averageWaterUsagePerMonth}
+                    {this.state.averageWaterUsagePerMonth} L
                   </Typography>
                 </CardContent>
               </Card>
@@ -684,7 +684,7 @@ class Dashboard extends React.Component {
                     Avg Water Usage Per Person Per Month
                   </Typography>
                   <Typography variant="h6" component="h2">
-                    {this.state.averageWaterUsagePerPersonPerMonth}
+                    {this.state.averageWaterUsagePerPersonPerMonth} L
                   </Typography>
                 </CardContent>
               </Card>

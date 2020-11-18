@@ -30,7 +30,7 @@ async function fetchDB(token) {
   await axios
     .get(`http://localhost:3001/api/waterusages/getallwaterusages`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
-      resdata = res.data.result;
+      resdata = res.data.result;      
     })
     .catch((err) => {
       console.log(err);
@@ -41,7 +41,7 @@ async function fetchDB(token) {
 async function fetchWSID(token) {
   let resdata = [];
   await axios
-    .get(`http://localhost:3001/api/watersources/getallwatersources`, { headers: { Authorization: "Bearer " + token } })
+    .get(`http://localhost:3001/api/watersources/getworkingwatersources`, { headers: { Authorization: "Bearer " + token } })
     .then((res) => {
       resdata = res.data.result;
     })
@@ -195,7 +195,7 @@ class WaterUsage extends React.Component {
                         <TableCell>{row.WSID}</TableCell>
                         <TableCell>{row.Month}</TableCell>
                         <TableCell>{row.Year}</TableCell>
-                        <TableCell>{row.Usages}</TableCell>
+                        <TableCell align="right">{row.Usages}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
