@@ -237,15 +237,14 @@ class Families extends React.Component {
                 id="Persons"
                 autoFocus
                 error={(this.state.val.Persons.length === 0)? false : true}
-                helperText={this.state.val.Person}
+                helperText={this.state.val.Persons}
                 onChange={(e) => {
                   let val = this.state.val;
                   var format = /[0-9]+/;
-                  if (!format.test(e.target.value)) val.Persons = "Designation cannot contain special symbols";            
+                  if (!format.test(e.target.value)) val.Persons = "People cannot contain special symbols";            
                   else val.Persons = "";
                   this.setState({ val });
                 }}
-                error={(this.state.val.Persons.length === 0)? false : true}
               />
               <TextField
                 variant="outlined"

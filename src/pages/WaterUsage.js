@@ -310,6 +310,7 @@ class WaterUsage extends React.Component {
                     });
                   }}
                   minDate={this.state.minDate}
+                  maxDate={new Date()}
                   required
                   fullWidth
                   inputVariant="outlined"
